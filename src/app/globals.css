@@ -1,0 +1,37 @@
+@import "react-datepicker/dist/react-datepicker.css";
+@import url("https://fonts.googleapis.com/css2?family=Wendy+One&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0 auto;
+}
+::-webkit-scrollbar {
+    display: none;
+}
+@keyframes expandWidth {
+    from {
+        max-width: 56px;
+    }
+    to {
+        max-width: 255px;
+    }
+}
+
+@keyframes collapseWidth {
+    from {
+        max-width: 255px;
+    }
+    to {
+        max-width: 56px;
+    }
+}
+
+.animate-expand {
+    animation: expandWidth 0.1s ease;
+}
+
+.animate-collapse {
+    animation: collapseWidth 0.1s ease-in-out;
+}

@@ -1,0 +1,69 @@
+import {request} from "../axios";
+
+export const getRoomsByHall = async (id: string) => {
+    try {
+        const response = await request.get(`rooms/hall/${id}`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+
+export const listRoom = async () => {
+    try {
+        const response = await request.get(`rooms`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+export const showRoom = async (id: string) => {
+    try {
+        const response = await request.post(`rooms`, {id});
+        return response.data;
+    } catch (error) {
+        return error;
+        // return error?.data;
+    }
+};
+
+export const userInRoom = async (id: string) => {
+    try {
+        const response = await request.get(`/users/room/${id}`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+export const saveLayoutRoom = async (id: string, objects: any[]) => {
+    console.log("layout", objects);
+
+    try {
+        const response = await request.put(
+            `/rooms/${id}/update-objects`,
+            objects
+        );
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+export const getValueRoom = async (id: string) => {
+    try {
+        const response = await request.get(`/rooms/${id}`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+
+export const uploadImageRoom = async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+        const response = await request.post(`/rooms/${id}/upload`, formData);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};

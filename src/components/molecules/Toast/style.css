@@ -1,0 +1,29 @@
+.toast {
+    position: fixed;
+    inset: 0;
+    z-index: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.toast.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+.toast-content {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+}
+
+.toast-content.show {
+    transform: translateY(-50%);
+}

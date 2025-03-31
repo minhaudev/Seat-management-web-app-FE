@@ -1,0 +1,43 @@
+.drawer {
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s;
+}
+
+.drawer.show {
+    opacity: 1;
+    visibility: visible;
+    transition: 0.3s;
+}
+
+/* .drawer {
+    opacity: 0;
+    visibility: hidden; 
+    transition: 0.3s linear;
+    animation: 0.3s linear drawer-close;
+}
+.drawer.show {
+    opacity: 1;
+    visibility: visible;
+    animation: 0.3s linear drawer-open;
+}
+@keyframes drawer-open {
+    0% {
+        transform: scaleX(0);
+        transform-origin: left;
+    }
+    100% {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+}
+@keyframes drawer-close {
+    0% {
+        transform: scaleX(1);
+        transform-origin: right;
+    }
+    100% {
+        transform: scaleX(0);
+        transform-origin: right;
+    }
+} */
