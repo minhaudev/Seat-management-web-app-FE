@@ -61,10 +61,14 @@ export const reassignUser = async (id: string, idSeat: string) => {
     }
 };
 export const savePositionSeat = async (
-    seatList: {id: string; ox: number; oy: number}[]
+    seatList: {id: string; ox: number; oy: number}[],
+    roomid: string
 ) => {
     try {
-        const response = await request.put(`/seats/update-positions`, seatList);
+        const response = await request.put(
+            `/seats/update-positions?roomid=${roomid}`,
+            seatList
+        );
         return response.data;
     } catch (error: any) {
         return error?.response?.data;

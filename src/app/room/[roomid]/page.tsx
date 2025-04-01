@@ -14,6 +14,8 @@ import useWebSocket from "@/hooks/webSocket";
 import {useParams} from "next/navigation";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
+import {Rnd} from "react-rnd";
+// import useWebSocketObj from "@/hooks/useWebSocketObj";
 interface AssignUserParams {
     idUser: string;
     idSeat: string;
@@ -147,14 +149,14 @@ export default function RoomDetails() {
             const response = await assignUser(assign.idSeat, assign.idUser);
             if (response.code === 1000) {
                 setAssign({idUser: "", idSeat: ""});
-                refreshSeats();
                 setIsOpenAsign(false);
-                // setIsSaveLayout(true);
+                setIsSaveLayout(true);
             }
         } catch (error) {}
     };
     const {roomid} = useParams() as {roomid: string};
-    const {connectionStatus} = useWebSocket(roomid);
+    useWebSocket(roomid);
+
     const handleReAssignUser = async () => {
         try {
             const response = await reassignUser(
@@ -164,8 +166,7 @@ export default function RoomDetails() {
             if (response.code === 1000) {
                 setReAssign({oldSeat: "", idSeat: ""});
                 setIsOpenReassign(false);
-
-                // setIsSaveLayout(true);
+                setIsSaveLayout(true);
             }
         } catch (error) {}
     };
@@ -183,7 +184,6 @@ export default function RoomDetails() {
         value: user.id,
         label: `${user.firstName} ${user.lastName} (${user.email})`
     }));
-
     return (
         <LayoutContainer
             isNav={role === "USER" ? false : true}
@@ -198,8 +198,8 @@ export default function RoomDetails() {
 
                     position: "relative"
                 }}>
-                {localSeats?.seats && Array.isArray(localSeats.seats) ?
-                    localSeats?.seats
+                {seatList?.seats && Array.isArray(seatList.seats) ?
+                    seatList?.seats
                         .filter((seat) => seat.ox !== 0 && seat.oy !== 0)
                         .map((seat) => (
                             <Tooltip
@@ -288,8 +288,8 @@ export default function RoomDetails() {
                     </Tooltip>
                 )}
 
-                {!hasBackground &&
-                    objects.map((object) => (
+                {objects?.map((object) => (
+                    <>
                         <ObjectComponent
                             key={object.id}
                             id={object.id}
@@ -300,7 +300,8 @@ export default function RoomDetails() {
                             color={object.color}
                             value={object.name}
                         />
-                    ))}
+                    </>
+                ))}
                 {isOpenAsign && (
                     <Modal
                         onClick={handleAssignUser}

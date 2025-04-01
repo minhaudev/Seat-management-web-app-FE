@@ -13,7 +13,9 @@ import CreateSeatModal from "@/components/atoms/CreateSeatModal/CreateSeatModal"
 import {CreateObjectModal} from "@/components/atoms/CreateObjectModal";
 import Frame from "@/assets/svgs/frame_v2.svg";
 import {saveLayoutRoom, uploadImageRoom} from "@/services/manager/room";
-import IconSeat from "@/assets/svgs/icon_seat.svg";
+
+import useWebSocket from "@/hooks/webSocket";
+
 function Navigation() {
     const {roomid} = useParams() as {roomid: string};
     const {
@@ -23,8 +25,6 @@ function Navigation() {
         objects,
         refreshSeats,
         updateSeatPosition
-        // setExpandNav,
-        // toggleExpandNav
     } = useSeat();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [expand, setExpand] = useState(false);
@@ -43,7 +43,6 @@ function Navigation() {
     }, [page]);
 
     const handleToggle = (sectionName: string) => {
-        console.log("Trước khi toggle: ", expand);
         setExpand(true);
 
         setSection((prev) =>
@@ -85,13 +84,14 @@ function Navigation() {
                 ox,
                 oy
             }));
-            const response = await savePositionSeat(formattedSeats);
+            const response = await savePositionSeat(formattedSeats, roomid);
             if (response.code === 1000) setIsSaveLayout(true);
         } catch (error) {
             console.error("Error saving layout:", error);
         }
     };
 
+    useWebSocket(roomid);
     const seaveLayoutObject = async () => {
         try {
             const formattedObject = objects.map(

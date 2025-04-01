@@ -18,6 +18,7 @@ interface SeatContextProps {
     setNotification: (value: string) => void;
     objects: RoomObject[];
     setObjects: React.Dispatch<React.SetStateAction<RoomObject[]>>;
+    refreshObject: () => void;
     addObject: (newObject: RoomObject) => void;
     roomValue: RoomValue | null;
     // toggleExpandNav: any;
@@ -69,9 +70,7 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
     const fetchObjects = async () => {
         try {
             const response = await getValueRoom(roomid);
-
             if (response && response.data) {
-                setRoomValue(response.data);
                 setObjects(response.data.object);
             }
         } catch (error) {
@@ -81,7 +80,7 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
 
     useEffect(() => {
         fetchObjects();
-    }, [roomid]);
+    }, []);
 
     const fetchSeats = async () => {
         try {
@@ -131,12 +130,11 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
             )
         );
     };
-    // const toggleExpandNav = () => {
-    //     setExpandNav((prev) => !prev); // Hàm cập nhật expandNav
-    // };
+
     return (
         <SeatContext.Provider
             value={{
+                refreshObject: fetchObjects,
                 notification,
                 roomValue,
                 objects,
@@ -163,8 +161,6 @@ export const UserInRoomProvider = ({children}: {children: React.ReactNode}) => {
         try {
             const response = await userInRoom(roomid);
             if (response && response.code === 1000) {
-                console.log("response", response);
-
                 setUserList(response.data);
             }
         } catch (error) {
@@ -183,7 +179,6 @@ export const UserInRoomProvider = ({children}: {children: React.ReactNode}) => {
     );
 };
 
-// Custom hooks để sử dụng context
 export const useSeat = () => {
     const context = useContext(SeatContext);
     if (!context) {

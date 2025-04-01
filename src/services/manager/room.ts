@@ -36,8 +36,6 @@ export const userInRoom = async (id: string) => {
     }
 };
 export const saveLayoutRoom = async (id: string, objects: any[]) => {
-    console.log("layout", objects);
-
     try {
         const response = await request.put(
             `/rooms/${id}/update-objects`,
@@ -62,6 +60,17 @@ export const uploadImageRoom = async (id: string, file: File) => {
     formData.append("file", file);
     try {
         const response = await request.post(`/rooms/${id}/upload`, formData);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+
+export const deleteObject = async (roomId: string, objectId: string) => {
+    try {
+        const response = await request.delete(
+            `/rooms/${roomId}/objects/${objectId}`
+        );
         return response.data;
     } catch (error: any) {
         return error?.response?.data;

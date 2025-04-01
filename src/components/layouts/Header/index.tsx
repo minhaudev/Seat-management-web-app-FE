@@ -8,7 +8,7 @@ import {FormatNotice} from "@/utils";
 import Link from "next/link";
 import {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/navigation";
-import {useOrderNotice} from "@/faker/OrderNotice"; // Import hook mới
+// import {useOrderNotice} from "@/faker/OrderNotice"; // Import hook mới
 
 export default function Header() {
     const [language, setLanguage] = useState("ENG");
@@ -16,7 +16,7 @@ export default function Header() {
     const [isNotice, setIsNotice] = useState(false);
     const noticeRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const {total, data} = useOrderNotice();
+    // const {total, data} = useOrderNotice();
     const [checkNotice, setCheckNotice] = useState(false);
     const router = useRouter();
 
@@ -80,7 +80,7 @@ export default function Header() {
                         onClick={() => {
                             setIsNotice(!isNotice);
                         }}>
-                        {data.length > 0 && (
+                        {/* {data.length > 0 && (
                             <span className="absolute cursor-pointer rounded-full ml-3 z-10 px-1 text-[8px] text-white bg-red">
                                 {FormatNotice(total)}
                             </span>
@@ -89,7 +89,7 @@ export default function Header() {
                         <Bell className="w-6 h-6 cursor-pointer" />
                         {isNotice && (
                             <OrderNotice total={total} dataNotice={data} />
-                        )}
+                        )} */}
                     </div>
 
                     <p
