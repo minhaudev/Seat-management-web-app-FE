@@ -20,7 +20,6 @@ export const UserProvider = ({children}: {children: ReactNode}) => {
     const [user, setUser] = useState<any>(null);
     const [userName, setUserName] = useState<string>("");
 
-    // Lấy thông tin từ localStorage khi component được mount
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
         const storedUserName = localStorage.getItem("userName");
@@ -33,21 +32,19 @@ export const UserProvider = ({children}: {children: ReactNode}) => {
         }
     }, []);
 
-    // Lưu user vào localStorage khi user thay đổi, nếu không phải null
     useEffect(() => {
         if (user) {
             localStorage.setItem("user", JSON.stringify(user));
         } else {
-            localStorage.removeItem("user"); // Xóa khi user là null
+            localStorage.removeItem("user");
         }
     }, [user]);
 
-    // Lưu userName vào localStorage khi userName thay đổi, nếu không phải chuỗi rỗng
     useEffect(() => {
         if (userName.trim()) {
             localStorage.setItem("userName", userName);
         } else {
-            localStorage.removeItem("userName"); // Xóa khi userName là chuỗi rỗng
+            localStorage.removeItem("userName");
         }
     }, [userName]);
 

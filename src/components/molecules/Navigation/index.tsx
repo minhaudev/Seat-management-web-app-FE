@@ -13,7 +13,6 @@ import CreateSeatModal from "@/components/atoms/CreateSeatModal/CreateSeatModal"
 import {CreateObjectModal} from "@/components/atoms/CreateObjectModal";
 import Frame from "@/assets/svgs/frame_v2.svg";
 import {saveLayoutRoom, uploadImageRoom} from "@/services/manager/room";
-
 import useWebSocket from "@/hooks/webSocket";
 
 function Navigation() {
@@ -91,7 +90,7 @@ function Navigation() {
         }
     };
 
-    useWebSocket(roomid);
+    useWebSocket(roomid, false);
     const seaveLayoutObject = async () => {
         try {
             const formattedObject = objects.map(
@@ -105,9 +104,17 @@ function Navigation() {
                     color
                 })
             );
+            const role =
+                typeof window !== "undefined" ?
+                    localStorage.getItem("role")
+                :   " ";
             const response = await saveLayoutRoom(roomid, formattedObject);
             if (response && response.code === 1000) {
-                setIsSaveLayout(true);
+                if (role === "SUPERUSER") {
+                    setIsSaveLayout(true);
+                } else {
+                    alert("waiting for response from admin!");
+                }
             }
         } catch (error) {
             console.error("Error saving layout:", error);

@@ -76,3 +76,27 @@ export const deleteObject = async (roomId: string, objectId: string) => {
         return error?.response?.data;
     }
 };
+export const getRoomChange = async () => {
+    try {
+        const response = await request.get(`/rooms/update/layout`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+export const approveLayout = async (roomId: string) => {
+    try {
+        const response = await request.post(`/rooms/approve/${roomId}`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+export const rejectLayout = async (roomId: string) => {
+    try {
+        const response = await request.delete(`/rooms/reject/${roomId}`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};

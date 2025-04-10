@@ -2,7 +2,7 @@
 import React, {createContext, useContext, useState, useEffect} from "react";
 import {RoomValue, SeatListResponse, User} from "@/interfaces/managerSeat";
 import {seatListInRoom} from "@/services/manager/seat";
-import {getValueRoom, userInRoom} from "@/services/manager/room";
+import {getRoomChange, getValueRoom, userInRoom} from "@/services/manager/room";
 import {useParams} from "next/navigation";
 export interface RoomObject {
     id?: string | any;
@@ -13,15 +13,33 @@ export interface RoomObject {
     oy: number;
     color: string;
 }
+interface ChangedData {
+    id: string;
+    name: string;
+    width: number;
+    height: number;
+    ox: number;
+    oy: number;
+    color: string;
+}
+interface Approve {
+    roomId: string;
+    roomName: string;
+    changedBy: string;
+    status: "Pending" | "Approve" | "Reject";
+    changedData?: ChangedData[];
+}
 interface SeatContextProps {
     notification: string;
     setNotification: (value: string) => void;
     objects: RoomObject[];
     setObjects: React.Dispatch<React.SetStateAction<RoomObject[]>>;
     refreshObject: () => void;
+    valueApprove: Approve[];
+    setValueApprove: React.Dispatch<React.SetStateAction<Approve[]>>;
+    refreshApprove: () => void;
     addObject: (newObject: RoomObject) => void;
     roomValue: RoomValue | null;
-    // toggleExpandNav: any;
     setRoomValue: React.Dispatch<React.SetStateAction<RoomValue | null>>;
     seatList: SeatListResponse;
     setSeatList: React.Dispatch<React.SetStateAction<SeatListResponse>>;
@@ -45,7 +63,7 @@ const SeatContext = createContext<SeatContextProps | undefined>(undefined);
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 export const SeatProvider = ({children}: {children: React.ReactNode}) => {
     const {roomid} = useParams() as {roomid: string};
-
+    const [valueApprove, setValueApprove] = useState<Approve[]>([]);
     const [seatList, setSeatList] = useState<SeatListResponse>({
         seats: [],
         totalElements: 0,
@@ -56,6 +74,15 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
     const [notification, setNotification] = useState<string>("");
     const [roomValue, setRoomValue] = useState<RoomValue | null>(null);
     const [objects, setObjects] = useState<RoomObject[]>([]);
+
+    const fetchDataApprove = async () => {
+        try {
+            const res = await getRoomChange();
+            if (res) {
+                setValueApprove(res);
+            }
+        } catch (error) {}
+    };
     const addObject = async (newObject: {
         name: string;
         width: number;
@@ -71,6 +98,7 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
         try {
             const response = await getValueRoom(roomid);
             if (response && response.data) {
+                setRoomValue(response.data);
                 setObjects(response.data.object);
             }
         } catch (error) {
@@ -134,6 +162,9 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
     return (
         <SeatContext.Provider
             value={{
+                refreshApprove: fetchDataApprove,
+                valueApprove,
+                setValueApprove,
                 refreshObject: fetchObjects,
                 notification,
                 roomValue,

@@ -1,3 +1,31 @@
+"use client";
+import {useSeat} from "@/context/SeatContext";
+
+export const parseNotification = (notification: string) => {
+    if (!notification) return null;
+
+    return {
+        content: notification,
+        timestamp: new Date().toISOString(),
+        type: "seat_update",
+        read: false
+    };
+};
+
+export const useOrderNotice = () => {
+    const {notification} = useSeat();
+
+    const notices =
+        notification ?
+            notification.split(";").map(parseNotification).filter(Boolean)
+        :   [];
+
+    return {
+        total: notices.length,
+        data: notices
+    };
+};
+
 // "use client";
 // import {useSeat} from "@/context/SeatContext";
 

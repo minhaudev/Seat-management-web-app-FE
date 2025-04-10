@@ -21,9 +21,7 @@ export default function OrderNotice(props: PropsOrderNotice) {
                     Notifications
                 </div>
                 {latestNotices?.map((item) => (
-                    <Link
-                        href={`http://localhost:3000/room/${item.idRoom}`}
-                        key={item.id}>
+                    <Link href={`http://localhost:3000/approve`} key={item.id}>
                         <div className="py-[12px] cursor-pointer border-t border-b border-stroke hover:bg-highlight hover:text-primary">
                             <p className="w-full px-4 mb-1 text-[13px] font-medium leading-[18.2px]">
                                 {item.content}

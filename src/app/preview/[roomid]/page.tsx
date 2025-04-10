@@ -14,7 +14,6 @@ import useWebSocket from "@/hooks/webSocket";
 import {useParams} from "next/navigation";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
-import {Switch} from "@nextui-org/react";
 interface AssignUserParams {
     idUser: string;
     idSeat: string;
@@ -27,22 +26,19 @@ export default function RoomDetails() {
     const [isSaveLayout, setIsSaveLayout] = useState(false);
     const {
         seatList,
-        setSeatList,
+        valueApprove,
         roomValue,
-        refreshSeats,
         updateSeatPosition,
-        objects,
-        refreshObject
+        refreshApprove
     } = useSeat();
     const {userList, refreshUsers} = useUser();
     const [localSeats, setLocalSeats] = useState<SeatListResponse>(seatList);
     const dropContainerRef = useRef<HTMLDivElement | null>(null);
-    const [hasBackground, setHasBackground] = useState(true);
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
     const [isOpenAsign, setIsOpenAsign] = useState(false);
     const [isOpenReassign, setIsOpenReassign] = useState(false);
-    const [role, setRole] = useState<string | null>(null);
-    const [Notification, setNotification] = useState([]);
+    console.log("valueApprove", valueApprove);
+
     const [assign, setAssign] = useState<AssignUserParams>({
         idUser: "",
         idSeat: ""
@@ -52,33 +48,18 @@ export default function RoomDetails() {
         idSeat: ""
     });
     const [isOn, setIsOn] = useState(false);
-
     const toggleSwitch = () => {
         setIsOn(!isOn);
-    };
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setHasBackground(e.target.checked);
-        console.log("Giá trị mới:", e.target.checked); // true hoặc false
     };
 
     useEffect(() => {
         setLocalSeats(seatList);
     }, [seatList]);
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const storedRole = localStorage.getItem("role");
-            setRole(storedRole);
-        }
-    }, []);
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        if (role === "USER") return;
-
         e.preventDefault();
     };
-
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        if (role === "USER") return;
         e.preventDefault();
         const seatData = e.dataTransfer.getData("seat");
         const positionMouse = e.dataTransfer.getData("positionMouse");
@@ -159,8 +140,6 @@ export default function RoomDetails() {
             }
         } catch (error) {}
     };
-    const {roomid} = useParams() as {roomid: string};
-    useWebSocket(roomid, false);
 
     const handleReAssignUser = async () => {
         try {
@@ -190,12 +169,10 @@ export default function RoomDetails() {
         label: `${user.firstName} ${user.lastName} (${user.email})`
     }));
     useEffect(() => {
-        refreshObject();
+        refreshApprove();
     }, []);
     return (
-        <LayoutContainer
-            isNav={role === "USER" ? false : true}
-            isFooter={false}>
+        <LayoutContainer isNav={false} isFooter={false} isHeader={false}>
             <div
                 ref={dropContainerRef}
                 onDragOver={handleDragOver}
@@ -295,20 +272,22 @@ export default function RoomDetails() {
                     </Tooltip>
                 )}
 
-                {objects?.map((object) => (
-                    <>
-                        <ObjectComponent
-                            key={object.id}
-                            id={object.id}
-                            ox={object.ox}
-                            oy={object.oy}
-                            width={object.width}
-                            height={object.height}
-                            color={object.color}
-                            value={object.name}
-                        />
-                    </>
-                ))}
+                {valueApprove
+                    ?.flatMap((item) => item.changedData || [])
+                    .map((object) => (
+                        <>
+                            <ObjectComponent
+                                key={object.id}
+                                id={object.id}
+                                ox={object.ox}
+                                oy={object.oy}
+                                width={object.width}
+                                height={object.height}
+                                color={object.color}
+                                value={object.name}
+                            />
+                        </>
+                    ))}
                 {isOpenAsign && (
                     <Modal
                         onClick={handleAssignUser}
@@ -362,7 +341,7 @@ export default function RoomDetails() {
                 />
             )}
             {roomValue?.image && (
-                <div className="flex justify-center gap-1 absolute top-[57px] z-50 right-[0px]">
+                <div className="flex justify-center gap-1 absolute top-0 z-50 right-[0px]">
                     <div
                         onClick={toggleSwitch}
                         className={`w-11 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
