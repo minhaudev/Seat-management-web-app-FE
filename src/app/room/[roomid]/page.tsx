@@ -10,11 +10,11 @@ import ObjectComponent from "@/components/atoms/Rnd";
 import Modal from "@/components/molecules/Modal";
 import Input from "@/components/atoms/Input";
 import {assignUser, reassignUser} from "@/services/manager/seat";
-import useWebSocket from "@/hooks/webSocket";
-import {useParams} from "next/navigation";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
-import {Switch} from "@nextui-org/react";
+import useWebSockets from "@/hooks/webSocket";
+import {useParams} from "next/navigation";
+
 interface AssignUserParams {
     idUser: string;
     idSeat: string;
@@ -159,8 +159,10 @@ export default function RoomDetails() {
             }
         } catch (error) {}
     };
+
+    const enableSuperUser = role === "SUPERUSER";
     const {roomid} = useParams() as {roomid: string};
-    useWebSocket(roomid, false);
+    const {connectionStatus} = useWebSockets(roomid, false);
 
     const handleReAssignUser = async () => {
         try {
@@ -192,6 +194,8 @@ export default function RoomDetails() {
     useEffect(() => {
         refreshObject();
     }, []);
+    console.log("localSeats", localSeats);
+
     return (
         <LayoutContainer
             isNav={role === "USER" ? false : true}
@@ -205,8 +209,8 @@ export default function RoomDetails() {
                     ...(isOn ? backgroundStyle : {}),
                     position: "relative"
                 }}>
-                {seatList?.seats && Array.isArray(seatList.seats) ?
-                    seatList?.seats
+                {localSeats?.seats && Array.isArray(localSeats.seats) ?
+                    localSeats?.seats
                         .filter((seat) => seat.ox !== 0 && seat.oy !== 0)
                         .map((seat) => (
                             <Tooltip

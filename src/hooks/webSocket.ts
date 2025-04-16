@@ -1,13 +1,19 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useSeat} from "@/context/SeatContext";
+import {NotificationItem} from "@/interfaces/managerSeat";
 
 const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
-    const {refreshSeats, refreshObject, setNotification, refreshApprove} =
-        useSeat();
-    const [sockets, setSockets] = useState<{
-        room?: WebSocket;
-        superUser?: WebSocket;
-    }>({});
+    const {
+        refreshSeats,
+        refreshObject,
+        notifications,
+        setNotifications,
+        refreshApprove
+    } = useSeat();
+
+    const roomSocketRef = useRef<WebSocket | null>(null);
+    const superUserSocketRef = useRef<WebSocket | null>(null);
+
     const [connectionStatus, setConnectionStatus] = useState<{
         room?: "Disconnected" | "Connected" | "Error" | "Closed";
         superUser?: "Disconnected" | "Connected" | "Error" | "Closed";
@@ -17,70 +23,116 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
     });
 
     useEffect(() => {
-        let roomSocket: WebSocket | null = null;
-        let superUserSocket: WebSocket | null = null;
+        // Cleanup cũ
+        if (roomSocketRef.current) {
+            roomSocketRef.current.close();
+            roomSocketRef.current = null;
+        }
 
+        if (superUserSocketRef.current) {
+            superUserSocketRef.current.close();
+            superUserSocketRef.current = null;
+        }
+
+        // Tạo kết nối mới
         if (roomId) {
-            roomSocket = new WebSocket(
+            const socket = new WebSocket(
                 `ws://localhost:8080/api/data?roomId=${roomId}`
             );
-            setupWebSocket(roomSocket, "room");
+            roomSocketRef.current = socket;
+            setupWebSocket(socket, "room");
         }
 
         if (enableSuperUser) {
-            superUserSocket = new WebSocket(
+            const socket = new WebSocket(
                 `ws://localhost:8080/api/data?role=SUPERUSER`
             );
-            setupWebSocket(superUserSocket, "superUser");
+            superUserSocketRef.current = socket;
+            setupWebSocket(socket, "superUser");
         }
 
-        setSockets({
-            room: roomSocket || undefined,
-            superUser: superUserSocket || undefined
-        });
-
         return () => {
-            if (roomSocket) roomSocket.close();
-            if (superUserSocket) superUserSocket.close();
+            roomSocketRef.current?.close();
+            superUserSocketRef.current?.close();
         };
     }, [roomId, enableSuperUser]);
 
-    const setupWebSocket = (ws: WebSocket, type: "room" | "superUser") => {
+    const setupWebSocket = (
+        ws: WebSocket,
+        socketType: "room" | "superUser"
+    ) => {
         ws.onopen = () => {
-            console.log(`${type} WebSocket kết nối thành công`);
-            setConnectionStatus((prev) => ({...prev, [type]: "Connected"}));
+            console.log(`${socketType} WebSocket kết nối thành công`);
+            setConnectionStatus((prev) => ({
+                ...prev,
+                [socketType]: "Connected"
+            }));
         };
 
         ws.onmessage = async (event: MessageEvent) => {
             try {
-                const data = await JSON.parse(event.data);
-                console.log("data", data);
+                const data = JSON.parse(event.data);
                 const {type, message} = data;
-                if (type === "seat") {
-                    refreshSeats();
-                } else if (type === "object") {
-                    refreshObject();
-                } else if (type === "SUPERUSER") {
-                    refreshApprove();
+
+                if (
+                    (type === "SUPERUSER" && socketType !== "superUser") ||
+                    (type !== "SUPERUSER" && socketType !== "room")
+                ) {
+                    return;
                 }
-                setNotification(message);
-            } catch (error) {
-                console.error(`[${type}] Lỗi phân tích JSON:`, error);
+
+                console.log(`[${socketType}] Nhận được:`, data);
+
+                const isDuplicate = notifications.some(
+                    (n) => n.content === message && n.type === type && !n.read
+                );
+
+                if (!isDuplicate) {
+                    const newNotification = {
+                        content: message,
+                        timestamp: new Date().toISOString(),
+                        type,
+                        read: false
+                    };
+                    // setNotifications((prev: NotificationItem[]) => [
+                    //     ...prev,
+                    //     newNotification
+                    // ]);
+                    setNotifications([...notifications, newNotification]);
+
+                    if (type === "seat") refreshSeats();
+                    else if (type === "object") refreshObject();
+                    else if (type === "SUPERUSER") refreshApprove();
+                }
+            } catch (err) {
+                console.error(`[${socketType}] Lỗi JSON:`, err);
             }
         };
 
         ws.onerror = (error: Event) => {
-            console.error(`${type} WebSocket lỗi:`, error);
-            setConnectionStatus((prev) => ({...prev, [type]: "Error"}));
+            console.error(`${socketType} WebSocket lỗi:`, error);
+            setConnectionStatus((prev) => ({
+                ...prev,
+                [socketType]: "Error"
+            }));
         };
 
         ws.onclose = () => {
-            console.log(`${type} WebSocket đã đóng kết nối`);
-            setConnectionStatus((prev) => ({...prev, [type]: "Closed"}));
+            console.log(`${socketType} WebSocket đã đóng kết nối`);
+            setConnectionStatus((prev) => ({
+                ...prev,
+                [socketType]: "Closed"
+            }));
         };
     };
 
-    return {connectionStatus, sockets};
+    return {
+        connectionStatus,
+        sockets: {
+            room: roomSocketRef.current || undefined,
+            superUser: superUserSocketRef.current || undefined
+        }
+    };
 };
 
 export default useWebSockets;

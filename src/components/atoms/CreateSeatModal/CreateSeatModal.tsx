@@ -1,9 +1,9 @@
 "use client";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 // import Modal from "../Modal";
 import Input from "@/components/atoms/Input";
 import Checkbox from "@/components/atoms/Checkbox";
-import {useUser} from "@/context/SeatContext";
+import {useSeat, useUser} from "@/context/SeatContext";
 
 import {createSeat} from "@/services/manager/seat";
 import Modal from "@/components/molecules/Modal";
@@ -11,7 +11,7 @@ import Modal from "@/components/molecules/Modal";
 interface CreateSeatModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSeatCreated: () => void;
+    onSeatCreated?: () => void;
     roomId: string;
 }
 
@@ -22,6 +22,7 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
     roomId
 }) => {
     const {userList, refreshUsers} = useUser();
+    const {refreshSeats} = useSeat();
     const [isChecked, setIsChecked] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
@@ -37,7 +38,17 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
             [name]: value
         }));
     };
-
+    useEffect(() => {
+        if (isOpen) {
+            setFormData({
+                name: "",
+                description: "",
+                typeSeat: "",
+                assign: ""
+            });
+            setIsChecked(false);
+        }
+    }, [isOpen]);
     const handleCreateSeat = async () => {
         try {
             const response = await createSeat(
@@ -49,16 +60,10 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
             );
             if (response?.code === 1000) {
                 console.log("response create seat", response.data);
-
                 refreshUsers();
+
+                refreshSeats();
                 onClose();
-                onSeatCreated();
-                setFormData({
-                    name: "",
-                    description: "",
-                    typeSeat: "",
-                    assign: ""
-                });
             }
         } catch (error) {
             console.error("Error creating seat:", error);
@@ -78,6 +83,7 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
             onClick={handleCreateSeat}
             onClose={onClose}>
             <Input
+                value={formData.name}
                 handleOnChange={handleInputChange}
                 require
                 label="Name Seat"
@@ -85,6 +91,7 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
                 placeholder="name seat"
             />
             <Input
+                value={formData.description}
                 handleOnChange={handleInputChange}
                 label="Description"
                 name="description"
@@ -93,6 +100,7 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
             <Input
                 handleSelectChange={handleInputChange}
                 require
+                value={formData.typeSeat}
                 label="Type Seat"
                 variant="select"
                 name="typeSeat"

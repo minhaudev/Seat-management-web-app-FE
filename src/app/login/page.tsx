@@ -9,7 +9,6 @@ import {signInUser} from "@/services/auth/login";
 import {fieldInput} from "@/consts/validates";
 import {validateField} from "@/utils/validateForm";
 import {Spinner} from "@nextui-org/react";
-import {useUser} from "@/context/UserContext";
 function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(true);
@@ -27,7 +26,6 @@ function Login() {
     });
 
     const [isRemember, setIsRemember] = useState(false);
-    const {setUser} = useUser();
     const router = useRouter();
     useEffect(() => {
         const savedEmail = localStorage.getItem("rememberedEmail");
@@ -96,7 +94,6 @@ function Login() {
                 }
                 const {firstName, lastName, email, role, idUser, idRoom} =
                     response.data;
-                setUser(response.data.email);
                 localStorage.setItem("idUser", idUser);
                 localStorage.setItem("role", role);
                 const nameUser =
@@ -196,11 +193,13 @@ function Login() {
                                 description="Remember me"
                             />
                         </div>
-                        {/* <p
+                        <p
                             className="text-[13px] cursor-pointer text-[#01559B] font-medium leading-[15.51px]"
-                            onClick={handleForgotPassword}>
+                            onClick={() => {
+                                router.push("/resetpassword");
+                            }}>
                             Forgot password?
-                        </p> */}
+                        </p>
                         <p
                             className="text-[13px] cursor-pointer text-[#01559B] font-medium leading-[15.51px]"
                             onClick={handleRegisterpage}>

@@ -7,8 +7,6 @@ interface DraggableSeatProps {
 }
 
 export const DraggableSeat: React.FC<DraggableSeatProps> = ({seat}) => {
-    console.log("seat", seat);
-
     const [role, setRole] = useState<string | null>(null);
 
     useEffect(() => {

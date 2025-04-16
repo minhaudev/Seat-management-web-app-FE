@@ -10,6 +10,7 @@ import {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/navigation";
 import {useOrderNotice} from "@/faker/OrderNotice";
 import useWebSockets from "@/hooks/webSocket";
+import {useSeat} from "@/context/SeatContext";
 
 export default function Header() {
     const [language, setLanguage] = useState("ENG");
@@ -18,6 +19,7 @@ export default function Header() {
     const noticeRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const {total, data} = useOrderNotice();
+    const {clearNotifications, notifications} = useSeat();
 
     const router = useRouter();
     const userName =
@@ -52,7 +54,12 @@ export default function Header() {
         window.addEventListener("click", handleClickOutside);
         return () => window.removeEventListener("click", handleClickOutside);
     }, []);
-
+    const handleNoticeClick = () => {
+        setIsNotice(!isNotice);
+        if (!isNotice) {
+            clearNotifications();
+        }
+    };
     return (
         <div className="w-full z-10 sticky top-0 bg-white">
             <div className="h-14 w-full flex justify-between items-center px-6 border-b border-stroke">
@@ -77,12 +84,12 @@ export default function Header() {
                     <div
                         className="relative"
                         ref={noticeRef}
-                        onClick={() => {
-                            setIsNotice(!isNotice);
-                        }}>
-                        {data.length > 0 && (
+                        onClick={handleNoticeClick}>
+                        {notifications.filter((n) => !n.read).length > 0 && (
                             <span className="absolute cursor-pointer rounded-full ml-3 z-10 px-1 text-[8px] text-white bg-red">
-                                {FormatNotice(total)}
+                                {FormatNotice(
+                                    notifications.filter((n) => !n.read).length
+                                )}
                             </span>
                         )}
 
@@ -117,15 +124,28 @@ export default function Header() {
                                     onClick={() =>
                                         router.push("/personalinformation")
                                     }>
-                                    Thông tin cá nhân
+                                    Info Personal
                                 </p>
-                                <p className="border-b py-2 text-[13px] cursor-pointer">
-                                    Đổi mật khẩu
+                                {role === "SUPERUSER" && (
+                                    <p
+                                        className="border-b py-2 text-[13px] cursor-pointer"
+                                        onClick={() => {
+                                            router.push("/managementuser");
+                                        }}>
+                                        Management User
+                                    </p>
+                                )}
+                                <p
+                                    className="border-b py-2 text-[13px] cursor-pointer"
+                                    onClick={() => {
+                                        router.push("/resetpassword");
+                                    }}>
+                                    Change Password
                                 </p>
                                 <p
                                     className="py-2 text-[13px] cursor-pointer"
                                     onClick={handleLogout}>
-                                    Đăng xuất
+                                    Logout
                                 </p>
                             </DropsDown>
                         )}

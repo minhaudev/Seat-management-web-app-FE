@@ -10,8 +10,6 @@ import ObjectComponent from "@/components/atoms/Rnd";
 import Modal from "@/components/molecules/Modal";
 import Input from "@/components/atoms/Input";
 import {assignUser, reassignUser} from "@/services/manager/seat";
-import useWebSocket from "@/hooks/webSocket";
-import {useParams} from "next/navigation";
 interface AssignUserParams {
     idUser: string;
     idSeat: string;

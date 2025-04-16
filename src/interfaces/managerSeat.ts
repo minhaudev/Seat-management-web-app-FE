@@ -61,3 +61,67 @@ export interface RoomValue {
     hallId: string;
     created: string;
 }
+
+export interface RoomObject {
+    id?: string | any;
+    name: string;
+    width: number;
+    height: number;
+    ox: number;
+    oy: number;
+    color: string;
+}
+export interface ChangedData {
+    id: string;
+    name: string;
+    width: number;
+    height: number;
+    ox: number;
+    oy: number;
+    color: string;
+}
+export interface Approve {
+    roomId: string;
+    roomName: string;
+    changedBy: string;
+    status: "Pending" | "Approve" | "Reject";
+    changedData?: ChangedData[];
+}
+export interface NotificationItem {
+    content: any;
+    timestamp: string;
+    type: any;
+    read: boolean;
+}
+
+export interface Permission {
+    name: string;
+    description: string;
+}
+
+export interface Role {
+    name: string;
+    description: string;
+    permissions: Permission[];
+}
+
+export interface UserInfo {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    roles?: Role[];
+    roleUpdate?: string[];
+    project?: string;
+    team?: string;
+    roomId?: string;
+    color?: string;
+    created?: string;
+}
+
+export interface UserInfoResponse {
+    code: number;
+    data: UserInfo;
+    timestamp: string;
+}

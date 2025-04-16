@@ -25,7 +25,7 @@ function Approve() {
         setData(valueApprove);
     }, [valueApprove]);
 
-    useWebSockets("", true);
+    // useWebSockets("", true);
 
     const handleStatusChange = async (
         roomId: string,
@@ -63,7 +63,7 @@ function Approve() {
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((item) => (
+                    {data?.map((item) => (
                         <TableRow className="text-center" key={item.roomId}>
                             <TableCell>{item.roomName}</TableCell>
                             <TableCell>{item.changedBy}</TableCell>
@@ -72,7 +72,7 @@ function Approve() {
                                 <Link
                                     href={`/preview/${item.roomId}`}
                                     target="_blank"
-                                    className="text-blue-600 underline hover:text-blue-800">
+                                    className="text-blue underline hover:text-blue-bold">
                                     Preview
                                 </Link>
                             </TableCell>

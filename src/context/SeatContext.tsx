@@ -1,37 +1,21 @@
 "use client";
 import React, {createContext, useContext, useState, useEffect} from "react";
-import {RoomValue, SeatListResponse, User} from "@/interfaces/managerSeat";
+import {
+    Approve,
+    NotificationItem,
+    RoomObject,
+    RoomValue,
+    SeatListResponse,
+    User
+} from "@/interfaces/managerSeat";
 import {seatListInRoom} from "@/services/manager/seat";
 import {getRoomChange, getValueRoom, userInRoom} from "@/services/manager/room";
 import {useParams} from "next/navigation";
-export interface RoomObject {
-    id?: string | any;
-    name: string;
-    width: number;
-    height: number;
-    ox: number;
-    oy: number;
-    color: string;
-}
-interface ChangedData {
-    id: string;
-    name: string;
-    width: number;
-    height: number;
-    ox: number;
-    oy: number;
-    color: string;
-}
-interface Approve {
-    roomId: string;
-    roomName: string;
-    changedBy: string;
-    status: "Pending" | "Approve" | "Reject";
-    changedData?: ChangedData[];
-}
+
 interface SeatContextProps {
-    notification: string;
-    setNotification: (value: string) => void;
+    notifications: NotificationItem[];
+    setNotifications: (value: NotificationItem[]) => void;
+    clearNotifications: () => void;
     objects: RoomObject[];
     setObjects: React.Dispatch<React.SetStateAction<RoomObject[]>>;
     refreshObject: () => void;
@@ -54,6 +38,12 @@ interface SeatContextProps {
     ) => void;
 }
 
+// const newNotification: NotificationItem = {
+//     content: "New notification content",
+//     timestamp: new Date().toISOString(),
+//     type: "info",
+//     read: false
+// };
 interface UserContextProps {
     userList: User[];
     refreshUsers: () => void;
@@ -71,9 +61,18 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
         pageNumber: 0,
         pageSize: 10
     });
-    const [notification, setNotification] = useState<string>("");
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [roomValue, setRoomValue] = useState<RoomValue | null>(null);
     const [objects, setObjects] = useState<RoomObject[]>([]);
+
+    const clearNotifications = () => {
+        setNotifications((prev) =>
+            prev.map((n) => ({
+                ...n,
+                read: true
+            }))
+        );
+    };
 
     const fetchDataApprove = async () => {
         try {
@@ -105,10 +104,6 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
             console.error("Error fetching objects:", error);
         }
     };
-
-    useEffect(() => {
-        fetchObjects();
-    }, []);
 
     const fetchSeats = async () => {
         try {
@@ -166,11 +161,12 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
                 valueApprove,
                 setValueApprove,
                 refreshObject: fetchObjects,
-                notification,
+                notifications,
                 roomValue,
                 objects,
                 seatList,
-                setNotification,
+                setNotifications,
+                clearNotifications,
                 setObjects,
                 addObject,
                 setSeatList,

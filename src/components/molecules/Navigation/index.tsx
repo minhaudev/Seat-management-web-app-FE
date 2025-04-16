@@ -13,7 +13,7 @@ import CreateSeatModal from "@/components/atoms/CreateSeatModal/CreateSeatModal"
 import {CreateObjectModal} from "@/components/atoms/CreateObjectModal";
 import Frame from "@/assets/svgs/frame_v2.svg";
 import {saveLayoutRoom, uploadImageRoom} from "@/services/manager/room";
-import useWebSocket from "@/hooks/webSocket";
+// import useWebSocket from "@/hooks/webSocket";
 
 function Navigation() {
     const {roomid} = useParams() as {roomid: string};
@@ -37,9 +37,6 @@ function Navigation() {
     const [selectedFileName, setSelectedFileName] = useState<string | null>(
         null
     );
-    useEffect(() => {
-        fetchSeats(page, 10);
-    }, [page]);
 
     const handleToggle = (sectionName: string) => {
         setExpand(true);
@@ -73,7 +70,9 @@ function Navigation() {
             pageSize: data?.data?.pageable?.pageSize
         }));
     };
-
+    useEffect(() => {
+        fetchSeats(page, 10);
+    }, [page]);
     const handleLoadMore = () => setPage((prev) => prev + 1);
 
     const saveLayoutSeat = async () => {
@@ -84,13 +83,15 @@ function Navigation() {
                 oy
             }));
             const response = await savePositionSeat(formattedSeats, roomid);
+            console.log("response", response);
+
             if (response.code === 1000) setIsSaveLayout(true);
         } catch (error) {
             console.error("Error saving layout:", error);
         }
     };
 
-    useWebSocket(roomid, false);
+    // useWebSocket(roomid, false);
     const seaveLayoutObject = async () => {
         try {
             const formattedObject = objects.map(
@@ -253,7 +254,7 @@ function Navigation() {
                 {expand && section.includes("supplies") && (
                     <>
                         <div
-                            className="flex gap-2 mt-2"
+                            className="flex gap-1 mt-2"
                             onClick={(e) => e.stopPropagation()}>
                             <Button
                                 variant="secondary"
@@ -268,10 +269,12 @@ function Navigation() {
                             </Button>
                             <div>
                                 <Button
-                                    className="flex justify-center items-center"
+                                    className="!px-1"
                                     variant="secondary"
                                     onClick={handleClick}>
-                                    <Frame /> PIC
+                                    <p className="flex">
+                                        <Frame /> PICTURE
+                                    </p>
                                 </Button>
                                 <input
                                     className="bg-white"

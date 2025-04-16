@@ -1,32 +1,28 @@
+import UserInfo from "@/interfaces/user";
 import {request} from "../axios";
 
-export const ShowCompany = async (id: string, token: string) => {
+export const getInfoPersonal = async () => {
     try {
-        const response = await request.get(`/company/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        console.log("response", response);
-
-        return response;
+        const response = await request.get(`/users/info`);
+        return response.data;
     } catch (error: any) {
-        return error?.response;
+        return error?.response?.data;
     }
 };
-
-export const getUser = async (idUser: string, token: string) => {
-    console.log(idUser, token);
+export const updateUser = async (
+    id: string,
+    data: {
+        firstName: string;
+        lastName: string;
+        phone: string;
+        roles: string[];
+        roomId: string;
+    }
+) => {
     try {
-        const response = await request.get(`/users/${idUser}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        console.log("response", response);
-
-        return response;
+        const response = await request.patch(`/users/${id}`, data);
+        return response.data;
     } catch (error: any) {
-        return error?.response;
+        return error?.response?.data;
     }
 };

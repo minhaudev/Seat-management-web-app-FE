@@ -1,100 +1,131 @@
 "use client";
 
-import Button from "@/components/atoms/Button";
 import React, {useEffect, useState} from "react";
 import LayoutContainer from "../LayoutContainer";
-import {useUser} from "@/context/UserContext";
-import {ShowCompany} from "@/services/auth/update";
+import {getInfoPersonal, updateUser} from "@/services/auth/update";
 
-const PersonalInformation = () => {
-    const {user, setUser} = useUser();
-    const [companyValue, setCompanyValue] = useState("");
+import Input from "@/components/atoms/Input";
 
-    useEffect(() => {
-        if (!user) {
-            const storedUser = localStorage.getItem("user");
-            if (storedUser) {
-                setUser(JSON.parse(storedUser));
-            }
+import Button from "@/components/atoms/Button";
+import {UserInfo} from "@/interfaces/managerSeat";
+import {ToastPosition, ToastType} from "@/enums/ToastEnum";
+import Toast from "@/components/molecules/Toast";
+
+export default function PersonalInformation() {
+    const [isSaveLayout, setIsSaveLayout] = useState(false);
+    const [info, setInfo] = useState<UserInfo | null>(null);
+    console.log("info", info);
+
+    const handleGetInfo = async () => {
+        try {
+            const res = await getInfoPersonal();
+            setInfo(res.data);
+        } catch (error) {
+            console.error("Lỗi khi lấy thông tin cá nhân:", error);
         }
-    }, [user, setUser]);
-
-    const authToken = localStorage.getItem("authToken");
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                if (user?.companyId) {
-                    const response = await ShowCompany(
-                        user.companyId,
-                        authToken || ""
-                    );
-                    setCompanyValue(response.data.name);
-                }
-            } catch (error) {
-                console.error("Failed to fetch company data:", error);
-            }
+        handleGetInfo();
+    }, []);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement> | any) => {
+        const {name, value} = e.target;
+        setInfo((prev) => (prev ? {...prev, [name]: value} : prev));
+    };
+    const handleUpdate = async () => {
+        if (!info) return;
+
+        const payload = {
+            firstName: info.firstName,
+            lastName: info.lastName,
+            project: info.project,
+            team: info.team,
+            phone: info.phone ?? "",
+            roles:
+                Array.isArray(info.roles) ?
+                    info.roles.map((role) => role.name)
+                :   [],
+            roomId: info.roomId ?? ""
         };
 
-        fetchData();
-    }, [user?.companyId, authToken]);
+        try {
+            const res = await updateUser(info.id, payload);
+            if (res.code === 1000) {
+                setIsSaveLayout(true);
+            }
+        } catch (error) {
+            console.error("Cập nhật thất bại:", error);
+        }
+    };
+
+    if (!info)
+        return (
+            <LayoutContainer isFooter={false} isNav={false}>
+                Đang tải...
+            </LayoutContainer>
+        );
 
     return (
-        <LayoutContainer>
-            <div className="flex justify-center items-center">
-                <div className="w-full max-w-xl gap-3 bg-white p-8 rounded-lg shadow-lg">
-                    <h2 className="text-3xl font-semibold text-center text-gray-700 mb-6">
-                        Thông Tin Người Dùng
-                    </h2>
+        <LayoutContainer isFooter={false} isNav={false}>
+            <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-4">
+                <h2 className="text-xl font-semibold text-center mb-4">
+                    Thông tin cá nhân
+                </h2>
 
-                    <div className="space-y-6">
-                        <div className="flex justify-center items-center py-[4px]">
-                            <span className="text-sm font-medium text-gray-600 w-[30%]">
-                                FirstName:
-                            </span>
-                            <span className="text-sm text-gray-800 border w-[70%] rounded-lg border-gray p-2">
-                                {user?.firstName || "N/A"}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="space-y-6">
-                        <div className="flex justify-center items-center py-[4px]">
-                            <span className="text-sm font-medium text-gray-600 w-[30%]">
-                                LastName:
-                            </span>
-                            <span className="text-sm text-gray-800 border w-[70%] rounded-lg border-gray p-2">
-                                {user?.lastName || "N/A"}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="space-y-6">
-                        <div className="flex justify-center items-center py-[4px]">
-                            <span className="text-sm font-medium text-gray-600 w-[30%]">
-                                UserName:
-                            </span>
-                            <span className="text-sm text-gray-800 border w-[70%] rounded-lg border-gray p-2">
-                                {user?.username || "N/A"}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="space-y-6">
-                        <div className="flex justify-center items-center py-[4px]">
-                            <span className="text-sm font-medium text-gray-600 w-[30%]">
-                                Company:
-                            </span>
-                            <span className="text-sm text-gray-800 border w-[70%] rounded-lg border-gray p-2">
-                                {companyValue || "N/A"}
-                            </span>
-                        </div>
-                    </div>
+                <Input
+                    name="firstName"
+                    value={info.firstName}
+                    handleOnChange={handleChange}
+                    placeholder="Họ"
+                />
+                <Input
+                    name="lastName"
+                    value={info?.lastName}
+                    handleOnChange={handleChange}
+                    placeholder="Tên"
+                />
+                <Input name="email" value={info.email} isDisabled />
+                <Input
+                    name="phone"
+                    value={info.phone}
+                    handleOnChange={handleChange}
+                    placeholder="Số điện thoại"
+                />
+                <Input
+                    name="project"
+                    value={info.project}
+                    handleOnChange={handleChange}
+                    placeholder="Project"
+                />
+                <Input
+                    name="team"
+                    value={info.team}
+                    handleOnChange={handleChange}
+                    placeholder="Team"
+                />
+                <Input
+                    name="roomId"
+                    value={info.roomId}
+                    isDisabled
+                    placeholder="roomId"
+                />
+                <Input name="id" value={`IDUser: ${info.id}`} isDisabled />
 
-                    <div className="mt-8 flex justify-center">
-                        <Button>Chỉnh sửa thông tin</Button>
-                    </div>
+                <div className="text-right mt-6">
+                    <Button onClick={handleUpdate}>Cập nhật</Button>
                 </div>
             </div>
+            {isSaveLayout === true && (
+                <Toast
+                    time={1000}
+                    position={ToastPosition.Top_Right}
+                    type={ToastType.Success}
+                    description="Save layout Success!"
+                    isOpen={isSaveLayout}
+                    onClose={() => setIsSaveLayout(false)}
+                />
+            )}
         </LayoutContainer>
     );
-};
-
-export default PersonalInformation;
+}

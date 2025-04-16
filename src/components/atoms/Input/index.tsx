@@ -119,12 +119,12 @@ const Input: React.FC<PropsInput> = (props) => {
                             )}
                             {Array.isArray(optionSelect) &&
                                 optionSelect
-                                    .filter((option) => option !== "")
+                                    .filter((option) => option.value !== "")
                                     .map((option, index) => (
                                         <option
                                             key={index}
-                                            value={option?.value}>
-                                            {option?.label}
+                                            value={option.value}>
+                                            {option.label}
                                         </option>
                                     ))}
                         </select>

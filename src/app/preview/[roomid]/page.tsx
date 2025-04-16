@@ -10,8 +10,6 @@ import ObjectComponent from "@/components/atoms/Rnd";
 import Modal from "@/components/molecules/Modal";
 import Input from "@/components/atoms/Input";
 import {assignUser, reassignUser} from "@/services/manager/seat";
-import useWebSocket from "@/hooks/webSocket";
-import {useParams} from "next/navigation";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 interface AssignUserParams {
@@ -37,7 +35,7 @@ export default function RoomDetails() {
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
     const [isOpenAsign, setIsOpenAsign] = useState(false);
     const [isOpenReassign, setIsOpenReassign] = useState(false);
-    console.log("valueApprove", valueApprove);
+    console.log("valueApprove", seatList);
 
     const [assign, setAssign] = useState<AssignUserParams>({
         idUser: "",
