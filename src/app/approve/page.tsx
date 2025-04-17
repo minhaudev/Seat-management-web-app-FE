@@ -31,8 +31,6 @@ function Approve() {
         roomId: string,
         newStatus: "Pending" | "Approve" | "Reject"
     ) => {
-        console.log("Đã chọn phòng:", roomId, "Trạng thái mới:", newStatus);
-
         setData((prevData) =>
             prevData.map((room) =>
                 room.roomId === roomId ? {...room, status: newStatus} : room

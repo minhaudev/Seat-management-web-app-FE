@@ -58,7 +58,6 @@ export default function RoomDetails() {
     };
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setHasBackground(e.target.checked);
-        console.log("Giá trị mới:", e.target.checked); // true hoặc false
     };
 
     useEffect(() => {
@@ -194,7 +193,6 @@ export default function RoomDetails() {
     useEffect(() => {
         refreshObject();
     }, []);
-    console.log("localSeats", localSeats);
 
     return (
         <LayoutContainer

@@ -35,7 +35,6 @@ export default function RoomDetails() {
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
     const [isOpenAsign, setIsOpenAsign] = useState(false);
     const [isOpenReassign, setIsOpenReassign] = useState(false);
-    console.log("valueApprove", seatList);
 
     const [assign, setAssign] = useState<AssignUserParams>({
         idUser: "",

@@ -59,7 +59,6 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
                 formData.description
             );
             if (response?.code === 1000) {
-                console.log("response create seat", response.data);
                 refreshUsers();
 
                 refreshSeats();

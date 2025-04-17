@@ -30,7 +30,7 @@ export default function OrderNotice(props: PropsOrderNotice) {
 
     const handleClick = (item: NotificationItem) => {
         const link = getLinkFromNotification(item);
-        console.log("Đi đến link:", link);
+
         router.push(link);
     };
 

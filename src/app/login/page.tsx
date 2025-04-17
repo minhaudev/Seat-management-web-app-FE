@@ -13,9 +13,13 @@ function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
+    // const [formData, setFormData] = useState({
+    //     email: "superuser@superuser.com",
+    //     password: "superuser123"
+    // });
     const [formData, setFormData] = useState({
-        email: "superuser@superuser.com",
-        password: "superuser123"
+        email: "landlord@landlord.com",
+        password: "123456789"
     });
     const [errors, setErrors] = useState<{
         email?: string;
@@ -120,7 +124,6 @@ function Login() {
         const token = localStorage.getItem("authToken");
         if (token) {
             const previousPage = document.referrer;
-            console.log("previousPage", previousPage);
 
             router.replace(previousPage);
         }

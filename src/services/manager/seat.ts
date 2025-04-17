@@ -49,8 +49,6 @@ export const assignUser = async (id: string, idUser: string) => {
     }
 };
 export const reassignUser = async (id: string, idSeat: string) => {
-    console.log("idSeatOld:", id, "idSeatNew:", idSeat);
-
     try {
         const response = await request.post(
             `seats/${id}/reassign?idSeat=${idSeat}`

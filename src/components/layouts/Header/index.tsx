@@ -8,7 +8,7 @@ import {FormatNotice} from "@/utils";
 import Link from "next/link";
 import {useEffect, useRef, useState} from "react";
 import {useRouter} from "next/navigation";
-import {useOrderNotice} from "@/faker/OrderNotice";
+import {useOrderNotice} from "@/utils/Notification";
 import useWebSockets from "@/hooks/webSocket";
 import {useSeat} from "@/context/SeatContext";
 

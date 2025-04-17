@@ -1,6 +1,8 @@
+"use client";
 import {useEffect, useRef, useState} from "react";
 import {useSeat} from "@/context/SeatContext";
 import {NotificationItem} from "@/interfaces/managerSeat";
+import {WEBSOCKET_URL} from "@/consts";
 
 const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
     const {
@@ -35,18 +37,15 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
         }
 
         // Tạo kết nối mới
+
         if (roomId) {
-            const socket = new WebSocket(
-                `ws://localhost:8080/api/data?roomId=${roomId}`
-            );
+            const socket = new WebSocket(`${WEBSOCKET_URL}?roomId=${roomId}`);
             roomSocketRef.current = socket;
             setupWebSocket(socket, "room");
         }
 
         if (enableSuperUser) {
-            const socket = new WebSocket(
-                `ws://localhost:8080/api/data?role=SUPERUSER`
-            );
+            const socket = new WebSocket(`${WEBSOCKET_URL}?role=SUPERUSER`);
             superUserSocketRef.current = socket;
             setupWebSocket(socket, "superUser");
         }
@@ -81,8 +80,6 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
                     return;
                 }
 
-                console.log(`[${socketType}] Nhận được:`, data);
-
                 const isDuplicate = notifications.some(
                     (n) => n.content === message && n.type === type && !n.read
                 );
@@ -94,11 +91,18 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
                         type,
                         read: false
                     };
-                    // setNotifications((prev: NotificationItem[]) => [
-                    //     ...prev,
-                    //     newNotification
-                    // ]);
-                    setNotifications([...notifications, newNotification]);
+
+                    const stored = JSON.parse(
+                        localStorage.getItem("notifications") || "[]"
+                    );
+                    localStorage.setItem(
+                        "notifications",
+                        JSON.stringify([...stored, newNotification])
+                    );
+                    setNotifications((prev: NotificationItem[]) => [
+                        ...prev,
+                        newNotification
+                    ]);
 
                     if (type === "seat") refreshSeats();
                     else if (type === "object") refreshObject();

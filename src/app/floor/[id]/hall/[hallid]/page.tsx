@@ -21,7 +21,6 @@ export default function RoomList() {
         const fetchFloors = async () => {
             try {
                 const response = await getRoomsByHall(hallid);
-                console.log("reponse room", response);
 
                 if (response && response.code === 1000) {
                     setRooms(response.data);

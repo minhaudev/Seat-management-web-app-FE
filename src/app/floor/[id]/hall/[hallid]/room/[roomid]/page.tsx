@@ -148,7 +148,7 @@ export default function RoomDetails() {
                 reAssign.oldSeat,
                 reAssign.idSeat
             );
-            console.log("response data asgin", response);
+
             if (response.code === 1000) {
                 refreshUsers();
                 alert("Asign success!");

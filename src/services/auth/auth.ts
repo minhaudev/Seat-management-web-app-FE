@@ -1,7 +1,6 @@
 import {request} from "../axios";
 
 export const forgotPassword = async (email: string) => {
-    console.log("email", email);
     try {
         const response = await request.post(`/auth/forgot-password`, {
             email
@@ -34,8 +33,6 @@ export const getAllUser = async () => {
     }
 };
 export const updateUser = async (id: string, data: any) => {
-    console.log("id", id, data);
-
     try {
         const res = await request.patch(`/users/${id}`, data);
         return res.data;

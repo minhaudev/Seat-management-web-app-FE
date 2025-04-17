@@ -45,7 +45,6 @@ function Register() {
         const fetchData = async () => {
             try {
                 const response = await GetAllCompany();
-                console.log("response", response);
 
                 const formattedCompanies = response.data.map(
                     (company: any) => ({
@@ -74,7 +73,7 @@ function Register() {
             company: validateField(fieldInput.COMPANY, value) // Kiểm tra lỗi của công ty
         });
     };
-    console.log("response", companyRef);
+
     const handleInputChange = (e: any) => {
         const {name, value} = e.target;
         setFormData({

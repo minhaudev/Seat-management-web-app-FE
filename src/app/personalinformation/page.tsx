@@ -14,7 +14,6 @@ import Toast from "@/components/molecules/Toast";
 export default function PersonalInformation() {
     const [isSaveLayout, setIsSaveLayout] = useState(false);
     const [info, setInfo] = useState<UserInfo | null>(null);
-    console.log("info", info);
 
     const handleGetInfo = async () => {
         try {

@@ -83,7 +83,6 @@ function Navigation() {
                 oy
             }));
             const response = await savePositionSeat(formattedSeats, roomid);
-            console.log("response", response);
 
             if (response.code === 1000) setIsSaveLayout(true);
         } catch (error) {
