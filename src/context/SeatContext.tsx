@@ -14,7 +14,7 @@ import {useParams} from "next/navigation";
 
 interface SeatContextProps {
     notifications: NotificationItem[];
-    setNotifications: (value: NotificationItem[]) => void;
+    setNotifications: React.Dispatch<React.SetStateAction<NotificationItem[]>>;
     clearNotifications: () => void;
     objects: RoomObject[];
     setObjects: React.Dispatch<React.SetStateAction<RoomObject[]>>;
