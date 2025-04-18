@@ -12,6 +12,7 @@ import Input from "@/components/atoms/Input";
 import {assignUser, reassignUser} from "@/services/manager/seat";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
+import {URL_IMAGE} from "@/consts";
 interface AssignUserParams {
     idUser: string;
     idSeat: string;
@@ -83,7 +84,7 @@ export default function RoomDetails() {
     };
 
     const backgroundStyle = {
-        backgroundImage: `url(http://localhost:8080${encodeURI(String(roomValue?.image))})`,
+        backgroundImage: `url(${URL_IMAGE}${encodeURI(String(roomValue?.image))})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"

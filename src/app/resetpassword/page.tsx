@@ -34,13 +34,14 @@ export default function recoverPassword() {
         setIsLoading(true);
         try {
             const res = await forgotPassword(formData.email);
-            if (res) {
-                setEmailSent(true);
+            console.log("res", res);
 
+            if (res.code !== 9999) {
+                setEmailSent(true);
                 setIsSuccess(true);
             } else {
                 setIsSuccess(false);
-                setErrorMessage("Đã có lỗi xảy ra!");
+                setErrorMessage(res.message);
             }
         } catch (err) {
             setIsSuccess(false);
@@ -87,7 +88,7 @@ export default function recoverPassword() {
                                 Loading...
                                 <Spinner size="sm" color="default" />
                             </p>
-                        : emailSent ?
+                        : emailSent && isSuccess === true ?
                             "Please check your email"
                         :   "Reset Password"}
                     </Button>

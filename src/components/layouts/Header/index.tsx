@@ -40,10 +40,10 @@ export default function Header() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem("authToken");
+        localStorage.clear();
         router.push("/login");
     };
-    useWebSockets("", true);
+    useWebSockets("");
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (!noticeRef.current?.contains(event.target as Node))
@@ -127,13 +127,22 @@ export default function Header() {
                                     Info Personal
                                 </p>
                                 {role === "SUPERUSER" && (
-                                    <p
-                                        className="border-b py-2 text-[13px] cursor-pointer"
-                                        onClick={() => {
-                                            router.push("/managementuser");
-                                        }}>
-                                        Management User
-                                    </p>
+                                    <div>
+                                        <p
+                                            className="border-b py-2 text-[13px] cursor-pointer"
+                                            onClick={() => {
+                                                router.push("/managementuser");
+                                            }}>
+                                            Management User
+                                        </p>
+                                        <p
+                                            className="border-b py-2 text-[13px] cursor-pointer"
+                                            onClick={() => {
+                                                router.push("/approve");
+                                            }}>
+                                            Approve
+                                        </p>
+                                    </div>
                                 )}
                                 <p
                                     className="border-b py-2 text-[13px] cursor-pointer"

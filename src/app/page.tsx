@@ -1,9 +1,13 @@
+"use client";
 import LayoutContainer from "./LayoutContainer";
 import bgImage from "@/assets/images/bg-2.jpg";
 import Card from "@/components/molecules/Card";
 import Image from "next/image";
 import {Armchair, Users, Calendar, LayoutGrid} from "lucide-react";
+import {useEffect} from "react";
+import {useRouter} from "next/navigation";
 export default function Home() {
+    const router = useRouter();
     const cardData = [
         {
             title: "Row Arrangement",
@@ -34,6 +38,10 @@ export default function Home() {
                 "Ideal for dynamic workspaces, co-working areas, and interactive sessions."
         }
     ];
+    useEffect(() => {
+        const isLogin = localStorage.getItem("token");
+        if (!isLogin) return router.push("/login");
+    });
     return (
         <LayoutContainer isNav={false}>
             <main className="flex-1">

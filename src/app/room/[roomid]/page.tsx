@@ -14,6 +14,7 @@ import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import useWebSockets from "@/hooks/webSocket";
 import {useParams} from "next/navigation";
+import {URL_IMAGE} from "@/consts";
 
 interface AssignUserParams {
     idUser: string;
@@ -104,7 +105,7 @@ export default function RoomDetails() {
     };
 
     const backgroundStyle = {
-        backgroundImage: `url(http://localhost:8080${encodeURI(String(roomValue?.image))})`,
+        backgroundImage: `url(${URL_IMAGE}${encodeURI(String(roomValue?.image))})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"
@@ -161,7 +162,7 @@ export default function RoomDetails() {
 
     const enableSuperUser = role === "SUPERUSER";
     const {roomid} = useParams() as {roomid: string};
-    const {connectionStatus} = useWebSockets(roomid, false);
+    const {connectionStatus} = useWebSockets(roomid);
 
     const handleReAssignUser = async () => {
         try {

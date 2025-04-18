@@ -9,17 +9,15 @@ import {signInUser} from "@/services/auth/login";
 import {fieldInput} from "@/consts/validates";
 import {validateField} from "@/utils/validateForm";
 import {Spinner} from "@nextui-org/react";
+
 function Login() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(true);
     const [errorMessage, setErrorMessage] = useState("");
-    // const [formData, setFormData] = useState({
-    //     email: "superuser@superuser.com",
-    //     password: "superuser123"
-    // });
+
     const [formData, setFormData] = useState({
-        email: "landlord@landlord.com",
-        password: "123456789"
+        email: "",
+        password: ""
     });
     const [errors, setErrors] = useState<{
         email?: string;
@@ -55,9 +53,6 @@ function Login() {
         setIsRemember(!isRemember);
     };
 
-    const handleRegisterpage = () => {
-        router.push("/register");
-    };
     const handleLogin = async () => {
         setIsLoading(true);
         const usernameError = validateField(fieldInput.EMAIL, formData.email);
@@ -120,14 +115,7 @@ function Login() {
             setIsLoading(false);
         }
     };
-    useEffect(() => {
-        const token = localStorage.getItem("authToken");
-        if (token) {
-            const previousPage = document.referrer;
 
-            router.replace(previousPage);
-        }
-    }, [router]);
     return (
         <div className="">
             <div
@@ -202,11 +190,6 @@ function Login() {
                                 router.push("/resetpassword");
                             }}>
                             Forgot password?
-                        </p>
-                        <p
-                            className="text-[13px] cursor-pointer text-[#01559B] font-medium leading-[15.51px]"
-                            onClick={handleRegisterpage}>
-                            Register User?
                         </p>
                     </div>
                 </div>

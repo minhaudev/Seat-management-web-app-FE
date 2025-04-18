@@ -9,7 +9,6 @@ import {Spinner} from "@nextui-org/react";
 import {useParams} from "next/navigation";
 import React, {useState} from "react";
 import "./style.css";
-import {Router} from "next/router";
 import {useRouter} from "next/navigation";
 export default function ResetPasswordPage() {
     const router = useRouter();

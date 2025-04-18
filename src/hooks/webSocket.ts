@@ -4,7 +4,7 @@ import {useSeat} from "@/context/SeatContext";
 import {NotificationItem} from "@/interfaces/managerSeat";
 import {WEBSOCKET_URL} from "@/consts";
 
-const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
+const useWebSockets = (roomId: string | null) => {
     const {
         refreshSeats,
         refreshObject,
@@ -25,7 +25,6 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
     });
 
     useEffect(() => {
-        // Cleanup cũ
         if (roomSocketRef.current) {
             roomSocketRef.current.close();
             roomSocketRef.current = null;
@@ -36,15 +35,17 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
             superUserSocketRef.current = null;
         }
 
-        // Tạo kết nối mới
-
         if (roomId) {
             const socket = new WebSocket(`${WEBSOCKET_URL}?roomId=${roomId}`);
             roomSocketRef.current = socket;
             setupWebSocket(socket, "room");
         }
 
-        if (enableSuperUser) {
+        const role =
+            typeof window !== "undefined" ? localStorage.getItem("role") : null;
+        const isSuperUser = role === "SUPERUSER";
+
+        if (isSuperUser) {
             const socket = new WebSocket(`${WEBSOCKET_URL}?role=SUPERUSER`);
             superUserSocketRef.current = socket;
             setupWebSocket(socket, "superUser");
@@ -54,7 +55,7 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
             roomSocketRef.current?.close();
             superUserSocketRef.current?.close();
         };
-    }, [roomId, enableSuperUser]);
+    }, [roomId]);
 
     const setupWebSocket = (
         ws: WebSocket,
@@ -91,14 +92,6 @@ const useWebSockets = (roomId: string | null, enableSuperUser: boolean) => {
                         type,
                         read: false
                     };
-
-                    const stored = JSON.parse(
-                        localStorage.getItem("notifications") || "[]"
-                    );
-                    localStorage.setItem(
-                        "notifications",
-                        JSON.stringify([...stored, newNotification])
-                    );
                     setNotifications((prev: NotificationItem[]) => [
                         ...prev,
                         newNotification

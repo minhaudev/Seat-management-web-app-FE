@@ -32,8 +32,8 @@ export default function HallList() {
     return (
         <LayoutContainer isNav={false}>
             <div className="grid grid-cols-3 gap-10 p-5">
-                {halls.length > 0 ?
-                    halls.map((hall) => (
+                {halls?.length > 0 ?
+                    halls?.map((hall) => (
                         <Card
                             key={hall.id}
                             title={hall.name}
