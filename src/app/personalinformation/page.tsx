@@ -61,7 +61,7 @@ export default function PersonalInformation() {
     if (!info)
         return (
             <LayoutContainer isFooter={false} isNav={false}>
-                Đang tải...
+                Loading ...
             </LayoutContainer>
         );
 

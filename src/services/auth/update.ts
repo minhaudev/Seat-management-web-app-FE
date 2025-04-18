@@ -12,15 +12,22 @@ export const getInfoPersonal = async () => {
 export const updateUser = async (
     id: string,
     data: {
-        firstName: string;
-        lastName: string;
-        phone: string;
-        roles: string[];
-        roomId: string;
+        firstName?: string;
+        lastName?: string;
+        phone?: string;
+        roles?: string[];
+        roomId?: string;
     }
 ) => {
     try {
-        const response = await request.patch(`/users/${id}`, data);
+        const filteredData = Object.fromEntries(
+            Object.entries(data).filter(
+                ([_, value]) =>
+                    value !== "" && value !== null && value !== undefined
+            )
+        );
+
+        const response = await request.patch(`/users/${id}`, filteredData);
         return response.data;
     } catch (error: any) {
         return error?.response?.data;

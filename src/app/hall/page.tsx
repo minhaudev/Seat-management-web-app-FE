@@ -43,7 +43,7 @@ export default function HallList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Đang tải ...</p>}
+                :   <p className="text-center col-span-3">Loading ...</p>}
             </div>
         </LayoutContainer>
     );

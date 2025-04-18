@@ -3,8 +3,6 @@ import React, {useEffect, useState} from "react";
 import {useRouter} from "next/navigation"; // Import useRouter
 import LayoutContainer from "../LayoutContainer";
 import Card from "@/components/molecules/Card";
-import {getAllFloor} from "@/services/manager/floor";
-import {listHall} from "@/services/manager/hall";
 import {listRoom} from "@/services/manager/room";
 
 export interface Room {
@@ -45,7 +43,7 @@ export default function RoomList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Đang tải ...</p>}
+                :   <p className="text-center col-span-3">Loading ...</p>}
             </div>
         </LayoutContainer>
     );

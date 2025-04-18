@@ -211,40 +211,16 @@ export default function RoomDetails() {
                     position: "relative"
                 }}>
                 {localSeats?.seats && Array.isArray(localSeats.seats) ?
-                    localSeats?.seats
+                    localSeats.seats
                         .filter((seat) => seat.ox !== 0 && seat.oy !== 0)
-                        .map((seat) => (
-                            <Tooltip
-                                key={seat.id}
-                                content={
-                                    <div className="text-left">
-                                        {seat.user?.id && (
-                                            <p>
-                                                <strong>ID:</strong>{" "}
-                                                {seat.user.id}
-                                            </p>
-                                        )}
-                                        {seat.user?.firstName && (
-                                            <p>
-                                                <strong>Name:</strong>{" "}
-                                                {seat.user.firstName}
-                                            </p>
-                                        )}
-                                        {seat.user?.team && (
-                                            <p>
-                                                <strong>Team:</strong>{" "}
-                                                {seat.user.team}
-                                            </p>
-                                        )}
-                                        {seat.user?.project && (
-                                            <p>
-                                                <strong>Project:</strong>{" "}
-                                                {seat.user.project}
-                                            </p>
-                                        )}
-                                    </div>
-                                }
-                                placement="top">
+                        .map((seat) => {
+                            const hasTooltipContent =
+                                seat.user?.id ||
+                                seat.user?.firstName ||
+                                seat.user?.team ||
+                                seat.user?.project;
+
+                            const seatContent = (
                                 <div
                                     onContextMenu={(e) =>
                                         handleContextMenu(e, seat)
@@ -256,8 +232,48 @@ export default function RoomDetails() {
                                     }}>
                                     <DraggableSeat seat={seat} />
                                 </div>
-                            </Tooltip>
-                        ))
+                            );
+
+                            return hasTooltipContent ?
+                                    <Tooltip
+                                        key={seat.id}
+                                        content={
+                                            <div className="text-left">
+                                                {seat.user?.id && (
+                                                    <p>
+                                                        <strong>ID:</strong>{" "}
+                                                        {seat.user.id}
+                                                    </p>
+                                                )}
+                                                {seat.user?.firstName && (
+                                                    <p>
+                                                        <strong>Name:</strong>{" "}
+                                                        {seat.user.firstName}
+                                                    </p>
+                                                )}
+                                                {seat.user?.team && (
+                                                    <p>
+                                                        <strong>Team:</strong>{" "}
+                                                        {seat.user.team}
+                                                    </p>
+                                                )}
+                                                {seat.user?.project && (
+                                                    <p>
+                                                        <strong>
+                                                            Project:
+                                                        </strong>{" "}
+                                                        {seat.user.project}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        }
+                                        placement="top">
+                                        {seatContent}
+                                    </Tooltip>
+                                :   <React.Fragment key={seat.id}>
+                                        {seatContent}
+                                    </React.Fragment>;
+                        })
                 :   null}
 
                 {menu.visible && (
