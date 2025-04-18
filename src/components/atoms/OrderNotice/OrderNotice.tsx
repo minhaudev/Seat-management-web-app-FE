@@ -33,7 +33,10 @@ export default function OrderNotice(props: PropsOrderNotice) {
 
         router.push(link);
     };
-
+    // const handle = () => {
+    //     console.log("update chưa ?");
+    //     router.push("/updating");
+    // };
     return latestNotices?.length !== 0 ?
             <div className="rounded-[10px] bg-white z-40 transition transform absolute min-w-[325px] h-auto shadow-[0px_4px_11px_0px_rgba(0,0,0,0.1)] left-[-149px] pt-4 mt-4">
                 <div className="font-medium mb-4 text-[16px] leading-[19.09px] text-text px-4">
@@ -55,14 +58,17 @@ export default function OrderNotice(props: PropsOrderNotice) {
 
                 {(total ?? 0) > 5 && (
                     <div className="text-center pb-4">
-                        <Button
-                            size="large"
-                            className="text-[14px] font-medium leading-[16.71px] mt-4"
-                            target="_blank"
-                            url="https://www.youtube.com/watch?v=AJtDXIazrMo&list=PLPSCssPYXhWTTcpNZwYoEQWt8Wc8KO0NV&index=18"
-                            variant="link">
+                        <button
+                            onClick={() => {
+                                router.push("/updating");
+                            }}
+                            // size="large"
+                            className="text-[14px] font-medium text-primary-5-hover leading-[16.71px] mt-4"
+                            // target="_blank"
+                            // url="https://www.youtube.com/watch?v=AJtDXIazrMo&list=PLPSCssPYXhWTTcpNZwYoEQWt8Wc8KO0NV&index=18"
+                        >
                             See all
-                        </Button>
+                        </button>
                     </div>
                 )}
             </div>

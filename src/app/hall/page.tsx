@@ -32,8 +32,8 @@ export default function HallList() {
     return (
         <LayoutContainer isNav={false}>
             <div className="grid grid-cols-3 gap-10 p-5">
-                {hallList.length > 0 ?
-                    hallList.map((hall) => (
+                {hallList?.length > 0 ?
+                    hallList?.map((hall) => (
                         <Card
                             key={hall.id}
                             title={hall.name}
@@ -43,7 +43,7 @@ export default function HallList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Không có dữ liệu</p>}
+                :   <p className="text-center col-span-3">Đang tải ...</p>}
             </div>
         </LayoutContainer>
     );

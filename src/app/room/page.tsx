@@ -45,7 +45,7 @@ export default function RoomList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Không có dữ liệu</p>}
+                :   <p className="text-center col-span-3">Đang tải ...</p>}
             </div>
         </LayoutContainer>
     );

@@ -40,7 +40,7 @@ export default function Header() {
     };
 
     const handleLogout = () => {
-        localStorage.clear();
+        localStorage.removeItem("authToken");
         router.push("/login");
     };
     useWebSockets("");
@@ -63,22 +63,31 @@ export default function Header() {
     return (
         <div className="w-full z-10 sticky top-0 bg-white">
             <div className="h-14 w-full flex justify-between items-center px-6 border-b border-stroke">
-                <Link
-                    href="/"
-                    className="uppercase text-[32px] font-[500] leading-[33.76px] font-wendy-one text-primary">
-                    SEAT
-                </Link>
+                {role === "superuser" ?
+                    <Link
+                        href="/"
+                        className="uppercase text-[32px] font-[500] leading-[33.76px] font-wendy-one text-primary">
+                        SEAT
+                    </Link>
+                :   <Link
+                        href={`/room/${localStorage.getItem("roomId")}`}
+                        className="uppercase text-[32px] font-[500] leading-[33.76px] font-wendy-one text-primary">
+                        SEAT
+                    </Link>
+                }
 
-                <div className="flex justify-between items-center w-[40%]">
-                    {["floor", "hall", "room"].map((page) => (
-                        <p
-                            key={page}
-                            className="cursor-pointer hover:text-primary-5-hover hover:font-medium font-normal text-[20px]"
-                            onClick={() => router.push(`/${page}`)}>
-                            {page.charAt(0).toUpperCase() + page.slice(1)}
-                        </p>
-                    ))}
-                </div>
+                {role === "SUPERUSER" && (
+                    <div className="flex justify-between items-center w-[40%]">
+                        {["floor", "hall", "room"].map((page) => (
+                            <p
+                                key={page}
+                                className="cursor-pointer hover:text-primary-5-hover hover:font-medium font-normal text-[20px]"
+                                onClick={() => router.push(`/${page}`)}>
+                                {page.charAt(0).toUpperCase() + page.slice(1)}
+                            </p>
+                        ))}
+                    </div>
+                )}
 
                 <div className="flex gap-4 items-center w-[30%] justify-end">
                     <div

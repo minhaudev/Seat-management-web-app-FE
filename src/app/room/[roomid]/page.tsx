@@ -15,6 +15,7 @@ import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import useWebSockets from "@/hooks/webSocket";
 import {useParams} from "next/navigation";
 import {URL_IMAGE} from "@/consts";
+// import AuthGuard from "@/components/molecules/AuthGuard";
 
 interface AssignUserParams {
     idUser: string;
@@ -196,6 +197,7 @@ export default function RoomDetails() {
     }, []);
 
     return (
+        // <AuthGuard>
         <LayoutContainer
             isNav={role === "USER" ? false : true}
             isFooter={false}>
@@ -380,5 +382,6 @@ export default function RoomDetails() {
                 </div>
             )}
         </LayoutContainer>
+        // </AuthGuard>
     );
 }

@@ -39,7 +39,7 @@ export default function Home() {
         }
     ];
     useEffect(() => {
-        const isLogin = localStorage.getItem("token");
+        const isLogin = localStorage.getItem("authToken");
         if (!isLogin) return router.push("/login");
     });
     return (

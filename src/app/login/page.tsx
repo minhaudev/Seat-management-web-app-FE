@@ -49,6 +49,17 @@ function Login() {
             [name]: validateField(name, value)
         });
     };
+    useEffect(() => {
+        const isLogin = localStorage.getItem("authToken");
+
+        if (isLogin) {
+            const redirectPath =
+                localStorage.getItem("redirectAfterLogin") || "/";
+            router.push(redirectPath);
+            localStorage.removeItem("redirectAfterLogin");
+        }
+    }, []);
+
     const onChangeRemember = (id: string) => {
         setIsRemember(!isRemember);
     };
@@ -95,6 +106,7 @@ function Login() {
                     response.data;
                 localStorage.setItem("idUser", idUser);
                 localStorage.setItem("role", role);
+                localStorage.setItem("roomId", idRoom);
                 const nameUser =
                     firstName || lastName ?
                         `${firstName || ""} ${" "} ${lastName || ""}`
