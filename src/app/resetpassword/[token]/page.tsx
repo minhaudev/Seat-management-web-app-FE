@@ -93,7 +93,6 @@ export default function ResetPasswordPage() {
                                 <Spinner size="sm" color="default" />
                             </p>
                         :   "Reset Password"}
-                        a
                     </Button>
 
                     {!isSuccess && (
