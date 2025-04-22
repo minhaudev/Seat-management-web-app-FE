@@ -10,7 +10,6 @@ import {
     TableRow
 } from "@nextui-org/react";
 import {approveLayout, rejectLayout} from "@/services/manager/room";
-import useWebSockets from "@/hooks/webSocket";
 import {useSeat} from "@/context/SeatContext";
 import Link from "next/link";
 
@@ -24,8 +23,6 @@ function Approve() {
     useEffect(() => {
         setData(valueApprove);
     }, [valueApprove]);
-
-    // useWebSockets("", true);
 
     const handleStatusChange = async (
         roomId: string,

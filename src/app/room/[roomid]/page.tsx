@@ -1,5 +1,4 @@
 "use client";
-
 import React, {useState, useEffect, useRef, use} from "react";
 import LayoutContainer from "@/app/LayoutContainer";
 import {useSeat, useUser} from "@/context/SeatContext";
@@ -15,8 +14,8 @@ import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import useWebSockets from "@/hooks/webSocket";
 import {useParams} from "next/navigation";
 import {URL_IMAGE} from "@/consts";
-// import AuthGuard from "@/components/molecules/AuthGuard";
-
+import Breadcrumb from "@/components/atoms/Breadcrumb";
+import {HomeIcon, SettingsIcon} from "lucide-react";
 interface AssignUserParams {
     idUser: string;
     idSeat: string;
@@ -39,12 +38,11 @@ export default function RoomDetails() {
     const {userList, refreshUsers} = useUser();
     const [localSeats, setLocalSeats] = useState<SeatListResponse>(seatList);
     const dropContainerRef = useRef<HTMLDivElement | null>(null);
-    const [hasBackground, setHasBackground] = useState(true);
+    // const [hasBackground, setHasBackground] = useState(true);
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
     const [isOpenAsign, setIsOpenAsign] = useState(false);
     const [isOpenReassign, setIsOpenReassign] = useState(false);
     const [role, setRole] = useState<string | null>(null);
-    const [Notification, setNotification] = useState([]);
     const [assign, setAssign] = useState<AssignUserParams>({
         idUser: "",
         idSeat: ""
@@ -58,9 +56,9 @@ export default function RoomDetails() {
     const toggleSwitch = () => {
         setIsOn(!isOn);
     };
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setHasBackground(e.target.checked);
-    };
+    // const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setHasBackground(e.target.checked);
+    // };
 
     useEffect(() => {
         setLocalSeats(seatList);
@@ -161,9 +159,8 @@ export default function RoomDetails() {
         } catch (error) {}
     };
 
-    const enableSuperUser = role === "SUPERUSER";
-    const {roomid} = useParams() as {roomid: string};
-    const {connectionStatus} = useWebSockets(roomid);
+    const roomId = localStorage.getItem("roomId") || "";
+    const {connectionStatus} = useWebSockets(roomId);
 
     const handleReAssignUser = async () => {
         try {
@@ -197,10 +194,32 @@ export default function RoomDetails() {
     }, []);
 
     return (
-        // <AuthGuard>
         <LayoutContainer
             isNav={role === "USER" ? false : true}
             isFooter={false}>
+            <div>
+                <Breadcrumb
+                    breadcrumbs={[
+                        {
+                            url: "#",
+                            label: "Home",
+                            prefixIcon: <HomeIcon size={16} />
+                        },
+                        {
+                            url: "#",
+                            label: roomValue?.nameFloor
+                        },
+                        {
+                            url: "#",
+                            label: roomValue?.nameHall
+                        },
+                        {
+                            url: "#",
+                            label: roomValue?.name
+                        }
+                    ]}
+                />
+            </div>
             <div
                 ref={dropContainerRef}
                 onDragOver={handleDragOver}

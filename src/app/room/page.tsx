@@ -14,8 +14,8 @@ export interface Room {
 
 export default function RoomList() {
     const [roomList, setRoomList] = useState<Room[]>([]);
-    const router = useRouter(); // Khởi tạo router
-
+    const router = useRouter();
+    const [isTimeout, setIsTimeout] = useState(false);
     useEffect(() => {
         const fetchRooms = async () => {
             try {
@@ -27,6 +27,11 @@ export default function RoomList() {
         };
 
         fetchRooms();
+        const timeout = setTimeout(() => {
+            setIsTimeout(true);
+        }, 10000);
+
+        return () => clearTimeout(timeout);
     }, []);
 
     return (
@@ -43,7 +48,11 @@ export default function RoomList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Loading ...</p>}
+                :   <p className="text-center col-span-3">
+                        {" "}
+                        {!isTimeout ? "Loading..." : "Not data!"}
+                    </p>
+                }
             </div>
         </LayoutContainer>
     );

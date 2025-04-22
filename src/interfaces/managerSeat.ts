@@ -59,6 +59,9 @@ export interface RoomValue {
     image: string | null;
     object: RoomObject[];
     hallId: string;
+    floorId: string;
+    nameFloor: string;
+    nameHall: string;
     created: string;
 }
 

@@ -14,7 +14,8 @@ export interface Hall {
 
 export default function HallList() {
     const [hallList, setHallList] = useState<Hall[]>([]);
-    const router = useRouter(); // Khởi tạo router
+    const router = useRouter();
+    const [isTimeout, setIsTimeout] = useState(false);
 
     useEffect(() => {
         const fetchHalls = async () => {
@@ -27,6 +28,11 @@ export default function HallList() {
         };
 
         fetchHalls();
+        const timeout = setTimeout(() => {
+            setIsTimeout(true);
+        }, 10000);
+
+        return () => clearTimeout(timeout);
     }, []);
 
     return (
@@ -43,7 +49,11 @@ export default function HallList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Loading ...</p>}
+                :   <p className="text-center col-span-3">
+                        {" "}
+                        {!isTimeout ? "Loading..." : "Not data!"}
+                    </p>
+                }
             </div>
         </LayoutContainer>
     );

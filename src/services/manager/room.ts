@@ -60,6 +60,7 @@ export const uploadImageRoom = async (id: string, file: File) => {
     formData.append("file", file);
     try {
         const response = await request.post(`/rooms/${id}/upload`, formData);
+
         return response.data;
     } catch (error: any) {
         return error?.response?.data;

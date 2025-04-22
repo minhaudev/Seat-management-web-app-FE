@@ -4,7 +4,7 @@ import {useSeat} from "@/context/SeatContext";
 import {NotificationItem} from "@/interfaces/managerSeat";
 import {WEBSOCKET_URL} from "@/consts";
 
-const useWebSockets = (roomId: string | null) => {
+const useWebSockets = (roomId: string) => {
     const {
         refreshSeats,
         refreshObject,
@@ -86,20 +86,26 @@ const useWebSockets = (roomId: string | null) => {
                 );
 
                 if (!isDuplicate) {
-                    const newNotification = {
+                    const newNotification: NotificationItem = {
                         content: message,
                         timestamp: new Date().toISOString(),
                         type,
                         read: false
                     };
+
                     setNotifications((prev: NotificationItem[]) => [
                         ...prev,
                         newNotification
                     ]);
 
-                    if (type === "seat") refreshSeats();
-                    else if (type === "object") refreshObject();
-                    else if (type === "SUPERUSER") refreshApprove();
+                    if (type === "seat" || type === "object") {
+                        refreshSeats();
+                        refreshObject();
+                    } else if (type === "SUPERUSER") {
+                        if (socketType === "superUser") {
+                            refreshApprove();
+                        }
+                    }
                 }
             } catch (err) {
                 console.error(`[${socketType}] Lỗi JSON:`, err);

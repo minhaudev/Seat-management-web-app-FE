@@ -3,7 +3,7 @@ import React, {ReactNode} from "react";
 import Separator from "@/assets/svgs/sperator.svg";
 interface IBreadcrumbItem {
     url: string;
-    label: string;
+    label?: string | undefined;
     prefixIcon?: ReactNode;
 }
 
@@ -49,7 +49,7 @@ const Breadcrumb = ({breadcrumbs, separator = ""}: Props) => {
             {breadcrumb.prefixIcon && breadcrumb.prefixIcon}
             {index !== breadcrumbs.length - 1 ?
                 <>
-                    <Link href={breadcrumb.url}>
+                    <Link href={breadcrumb?.url}>
                         <span className="px-1 text-[16px] text-input">
                             {breadcrumb.label}
                         </span>

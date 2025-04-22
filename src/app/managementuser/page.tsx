@@ -7,6 +7,9 @@ import Input from "@/components/atoms/Input";
 import {UserInfo} from "@/interfaces/managerSeat";
 import Paginator from "@/components/molecules/Pagination";
 import {Pencil, Trash2} from "lucide-react";
+import {showAllName} from "@/services/manager/team";
+import {showAllProject} from "@/services/manager/project";
+import {Spinner} from "@nextui-org/react";
 
 const emptyUserInfo: UserInfo = {
     id: "",
@@ -22,22 +25,27 @@ function ManagementUser() {
     const [users, setUsers] = useState<UserInfo[]>([]);
     const [editingUserId, setEditingUserId] = useState<string | null>(null);
     const [editedUser, setEditedUser] = useState(emptyUserInfo);
-
+    const [isSaving, setIsSaving] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(7);
-
+    const [teamOptions, setTeamOptions] = useState<
+        {value: string; label: string}[]
+    >([]);
+    const [projectOptions, setProjectOptions] = useState<
+        {value: string; label: string}[]
+    >([]);
     const buildUpdateUserPayload = (user: UserInfo) => ({
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        project: user.project,
-        team: user.team,
-        roles: user.roleUpdate
+        projectId: user.project,
+        teamId: user.team,
+        roles: user.roleUpdate ?? user.roleUpdate
     });
 
     const handleGetAllUser = async () => {
         const res = await getAllUser();
-        if (res) {
+        if (res.code === 1000) {
             setUsers(res.data);
         }
     };
@@ -47,8 +55,18 @@ function ManagementUser() {
     }, []);
 
     const handleEdit = (user: UserInfo) => {
+        const matchedProject = projectOptions.find(
+            (p) => p.label === user.project
+        );
+        const matchedTeam = teamOptions.find((t) => t.label === user.team);
+        const matchedRole = user.roles?.[0]?.name || "USER";
         setEditingUserId(user.id);
-        setEditedUser(user);
+        setEditedUser({
+            ...user,
+            project: matchedProject?.value || "",
+            team: matchedTeam?.value || "",
+            roleUpdate: [matchedRole]
+        });
     };
 
     const handleCancel = () => {
@@ -63,17 +81,16 @@ function ManagementUser() {
 
     const handleSave = async () => {
         if (editingUserId !== null) {
+            setIsSaving(true);
             const res = await updateUser(
                 editingUserId,
                 buildUpdateUserPayload(editedUser)
             );
-            if (res) {
-                const updatedUsers = users.map((user) =>
-                    user.id === editingUserId ? editedUser : user
-                );
-                setUsers(updatedUsers);
+            if (res.code === 1000) {
+                await handleGetAllUser();
                 setEditingUserId(null);
             }
+            setIsSaving(false);
         }
     };
 
@@ -102,11 +119,31 @@ function ManagementUser() {
     const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
 
     const roleOptions = [
-        {value: "USER", label: "User"},
-        {value: "LANDLORD", label: "Landlord"},
-        {value: "SUPERUSER", label: "Superuser"}
+        {value: "USER", label: "USER"},
+        {value: "LANDLORD", label: "LANDLORD"},
+        {value: "SUPERUSER", label: "SUPERUSER"}
     ];
+    const getAllTeam = async () => {
+        const res = await showAllName();
+        const options = res.data.map((item: {id: string; name: string}) => ({
+            value: item.id,
+            label: item.name
+        }));
+        setTeamOptions(options);
+    };
+    const getAllProject = async () => {
+        const res = await showAllProject();
+        const options = res.data.map((item: {id: string; name: string}) => ({
+            value: item.id,
+            label: item.name
+        }));
+        setProjectOptions(options);
+    };
 
+    useEffect(() => {
+        getAllTeam();
+        getAllProject();
+    }, []);
     return (
         <LayoutContainer isFooter={false} isNav={false}>
             <h2 className="text-xl font-bold">User Management</h2>
@@ -156,8 +193,7 @@ function ManagementUser() {
                                                 name="role"
                                                 value={
                                                     editedUser
-                                                        .roleUpdate?.[0] ||
-                                                    roleOptions[0].value
+                                                        .roleUpdate?.[0] || ""
                                                 }
                                                 handleSelectChange={
                                                     handleSelectChange
@@ -166,25 +202,37 @@ function ManagementUser() {
                                         </td>
                                         <td className="border p-2">
                                             <Input
+                                                variant="select"
+                                                optionSelect={projectOptions}
                                                 name="project"
                                                 value={editedUser.project}
-                                                handleOnChange={handleChange}
+                                                handleSelectChange={
+                                                    handleSelectChange
+                                                }
                                             />
                                         </td>
                                         <td className="border p-2">
                                             <Input
+                                                variant="select"
+                                                optionSelect={teamOptions}
                                                 name="team"
                                                 value={editedUser.team}
-                                                handleOnChange={handleChange}
+                                                handleSelectChange={
+                                                    handleSelectChange
+                                                }
                                             />
                                         </td>
                                         <td className="border p-2 flex gap-2 justify-center">
                                             <Button
+                                                isDisabled={isSaving}
                                                 variant="primary-dark"
                                                 onClick={handleSave}>
-                                                Save
+                                                {isSaving ?
+                                                    <Spinner />
+                                                :   "Save"}
                                             </Button>
                                             <Button
+                                                isDisabled={isSaving}
                                                 onClick={handleCancel}
                                                 variant="upload">
                                                 Cancel
@@ -210,10 +258,15 @@ function ManagementUser() {
                                             :   "USER"}
                                         </td>
                                         <td className="border p-2">
-                                            {user.project}
+                                            {projectOptions.find(
+                                                (opt) =>
+                                                    opt.value === user.project
+                                            )?.label || user.project}
                                         </td>
                                         <td className="border w-32 p-2">
-                                            {user.team}
+                                            {teamOptions.find(
+                                                (opt) => opt.value === user.team
+                                            )?.label || user.team}
                                         </td>
                                         <td className="border p-2 flex gap-2 justify-center ">
                                             <Button

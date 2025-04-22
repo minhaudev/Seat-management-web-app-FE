@@ -34,7 +34,6 @@ export default function recoverPassword() {
         setIsLoading(true);
         try {
             const res = await forgotPassword(formData.email);
-            console.log("res", res);
 
             if (res.code !== 9999) {
                 setEmailSent(true);

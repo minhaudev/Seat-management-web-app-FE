@@ -7,6 +7,7 @@ import {useSeat, useUser} from "@/context/SeatContext";
 
 import {createSeat} from "@/services/manager/seat";
 import Modal from "@/components/molecules/Modal";
+import {validateField} from "@/utils/validateForm";
 
 interface CreateSeatModalProps {
     isOpen: boolean;
@@ -23,12 +24,20 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
 }) => {
     const {userList, refreshUsers} = useUser();
     const {refreshSeats} = useSeat();
+    const [errorServer, setErrorServer] = useState("");
     const [isChecked, setIsChecked] = useState(false);
     const [formData, setFormData] = useState({
-        name: "",
+        nameSeat: "",
         description: "",
         typeSeat: "",
         assign: ""
+    });
+    const [errors, setErrors] = useState<{
+        nameSeat: "";
+        typeSeat: "";
+    }>({
+        nameSeat: "",
+        typeSeat: ""
     });
 
     const handleInputChange = (e: any) => {
@@ -37,32 +46,52 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
             ...prev,
             [name]: value
         }));
+        setErrors({
+            ...errors,
+            [name]: validateField(name, value)
+        });
+        if (errorServer) {
+            setErrorServer("");
+        }
     };
     useEffect(() => {
         if (isOpen) {
             setFormData({
-                name: "",
+                nameSeat: "",
                 description: "",
-                typeSeat: "",
+                typeSeat: "TEMPORARY",
                 assign: ""
             });
             setIsChecked(false);
         }
     }, [isOpen]);
     const handleCreateSeat = async () => {
+        const payload: any = {
+            nameSeat: formData.nameSeat,
+            description: formData.description,
+            typeSeat: formData.typeSeat,
+            roomId
+        };
+        let userIdToSend = "";
+
+        if (isChecked && formData.assign.trim() !== "") {
+            userIdToSend = formData.assign;
+        }
+
         try {
             const response = await createSeat(
-                formData.assign,
-                formData.name,
-                formData.typeSeat,
-                roomId,
-                formData.description
+                userIdToSend,
+                payload.nameSeat,
+                payload.typeSeat,
+                payload.roomId,
+                payload.description
             );
             if (response?.code === 1000) {
                 refreshUsers();
-
                 refreshSeats();
                 onClose();
+            } else {
+                setErrorServer(response.message);
             }
         } catch (error) {
             console.error("Error creating seat:", error);
@@ -73,59 +102,64 @@ const CreateSeatModal: React.FC<CreateSeatModalProps> = ({
         value: user.id,
         label: `${user.firstName} ${user.lastName} (${user.email})`
     }));
-
     return (
-        <Modal
-            isOpen={isOpen}
-            name="CREATE SEAT"
-            nameBtn="CREATE"
-            onClick={handleCreateSeat}
-            onClose={onClose}>
-            <Input
-                value={formData.name}
-                handleOnChange={handleInputChange}
-                require
-                label="Name Seat"
-                name="name"
-                placeholder="name seat"
-            />
-            <Input
-                value={formData.description}
-                handleOnChange={handleInputChange}
-                label="Description"
-                name="description"
-                placeholder="description"
-            />
-            <Input
-                handleSelectChange={handleInputChange}
-                require
-                value={formData.typeSeat}
-                label="Type Seat"
-                variant="select"
-                name="typeSeat"
-                optionSelect={[
-                    {value: "TEMPORARY", label: "Temporary"},
-                    {value: "PERMANENT", label: "Permanent"}
-                ]}
-                placeholder="type seat"
-            />
-            {isChecked && (
+        <div>
+            <Modal
+                isDisabled={errorServer !== ""}
+                isOpen={isOpen}
+                name="CREATE SEAT"
+                nameBtn="CREATE"
+                onClick={handleCreateSeat}
+                onClose={onClose}>
+                <Input
+                    isError={!!errors.nameSeat}
+                    helperText={errors.nameSeat}
+                    value={formData.nameSeat}
+                    handleOnChange={handleInputChange}
+                    require
+                    label="Name Seat"
+                    name="nameSeat"
+                    placeholder="name seat"
+                />
+
                 <Input
                     handleSelectChange={handleInputChange}
-                    label="Assign seat"
+                    require
+                    label="Type Seat"
+                    value={formData.typeSeat}
                     variant="select"
-                    name="assign"
-                    optionSelect={userOptions}
-                    placeholder="Assign"
+                    name="typeSeat"
+                    optionSelect={[
+                        {value: "TEMPORARY", label: "Temporary"},
+                        {value: "PERMANENT", label: "Permanent"}
+                    ]}
                 />
-            )}
-            <Checkbox
-                id="checkassign"
-                checked={isChecked}
-                onChange={() => setIsChecked((prev) => !prev)}
-                description="Assign User?"
-            />
-        </Modal>
+                <Input
+                    value={formData.description}
+                    handleOnChange={handleInputChange}
+                    label="Description"
+                    name="description"
+                    placeholder="description"
+                />
+                {isChecked && (
+                    <Input
+                        handleSelectChange={handleInputChange}
+                        label="Assign seat"
+                        variant="select"
+                        name="assign"
+                        optionSelect={userOptions}
+                        placeholder="Assign"
+                    />
+                )}
+                <Checkbox
+                    id="checkassign"
+                    checked={isChecked}
+                    onChange={() => setIsChecked((prev) => !prev)}
+                    description="Assign User?"
+                />
+                <p className="text-red">{errorServer}</p>
+            </Modal>
+        </div>
     );
 };
 

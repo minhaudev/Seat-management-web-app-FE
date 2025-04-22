@@ -13,6 +13,9 @@ import {getRoomChange, getValueRoom, userInRoom} from "@/services/manager/room";
 import {useParams} from "next/navigation";
 
 interface SeatContextProps {
+    removeUnsavedObject: (id: string) => void;
+    userName: string;
+    setUserName: (name: string) => void;
     notifications: NotificationItem[];
     setNotifications: React.Dispatch<React.SetStateAction<NotificationItem[]>>;
     clearNotifications: () => void;
@@ -29,6 +32,7 @@ interface SeatContextProps {
     setSeatList: React.Dispatch<React.SetStateAction<SeatListResponse>>;
     refreshSeats: () => void;
     updateSeatPosition: (id: string, ox: number, oy: number) => void;
+    updateObject: (id: string, name: string, color: string) => void;
     updateObjectPosition: (
         id: string,
         width: number,
@@ -61,10 +65,19 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
         pageNumber: 0,
         pageSize: 10
     });
+    const [userName, setUserName] = useState("");
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [roomValue, setRoomValue] = useState<RoomValue | null>(null);
     const [objects, setObjects] = useState<RoomObject[]>([]);
+    useEffect(() => {
+        const stored = localStorage.getItem("nameUser");
+        if (stored) setUserName(stored);
+    }, []);
 
+    const updateUserName = (name: string) => {
+        localStorage.setItem("userName", name);
+        setUserName(name);
+    };
     const clearNotifications = () => {
         setNotifications((prev) =>
             prev.map((n) => ({
@@ -103,6 +116,14 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
         } catch (error) {
             console.error("Error fetching objects:", error);
         }
+    };
+
+    const updateObject = (id: string, name: string, color: string) => {
+        setObjects((prevObjects) =>
+            prevObjects.map((obj) =>
+                obj.id === id ? {...obj, name: name, color} : obj
+            )
+        );
     };
 
     const fetchSeats = async () => {
@@ -153,10 +174,17 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
             )
         );
     };
+    const removeUnsavedObject = (id: string) => {
+        setObjects((prevObjects) => prevObjects.filter((obj) => obj.id !== id));
+    };
 
     return (
         <SeatContext.Provider
             value={{
+                removeUnsavedObject,
+                updateObject,
+                userName,
+                setUserName: updateUserName,
                 refreshApprove: fetchDataApprove,
                 valueApprove,
                 setValueApprove,

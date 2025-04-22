@@ -36,6 +36,5 @@ export const validateField = (field: string, value: string) => {
             if (!birthdayPattern.test(value)) {
                 return "Birthday không đúng định dạng!";
             }
-            return "";
     }
 };

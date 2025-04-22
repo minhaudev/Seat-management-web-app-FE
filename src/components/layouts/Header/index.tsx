@@ -13,37 +13,37 @@ import useWebSockets from "@/hooks/webSocket";
 import {useSeat} from "@/context/SeatContext";
 
 export default function Header() {
-    const [language, setLanguage] = useState("ENG");
     const [isClicked, setIsClicked] = useState(false);
     const [isNotice, setIsNotice] = useState(false);
     const noticeRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const {total, data} = useOrderNotice();
-    const {clearNotifications, notifications} = useSeat();
+    const {clearNotifications, userName, notifications} = useSeat();
 
     const router = useRouter();
-    const userName =
-        typeof window !== "undefined" ?
-            localStorage.getItem("nameUser") || "Guest"
-        :   "Guest";
+    const userNamelocal =
+        typeof window !== "undefined" ? userName || "Guest" : "Guest";
+
     const role =
         typeof window !== "undefined" ? localStorage.getItem("role") : " ";
 
-    useEffect(() => {
-        setLanguage(localStorage.getItem("language") || "ENG");
-    }, []);
-
-    const handleLanguage = () => {
-        const newLanguage = language === "ENG" ? "VI" : "ENG";
-        setLanguage(newLanguage);
-        localStorage.setItem("language", newLanguage);
-    };
-
     const handleLogout = () => {
-        localStorage.removeItem("authToken");
+        const rememberedEmail = localStorage.getItem("rememberedEmail");
+        const rememberedPassword = localStorage.getItem("rememberedPassword");
+
+        localStorage.clear();
+
+        if (rememberedEmail) {
+            localStorage.setItem("rememberedEmail", rememberedEmail);
+        }
+        if (rememberedPassword) {
+            localStorage.setItem("rememberedPassword", rememberedPassword);
+        }
+
         router.push("/login");
     };
-    useWebSockets("");
+
+    useWebSockets("SUPERUSER");
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (!noticeRef.current?.contains(event.target as Node))
@@ -78,7 +78,7 @@ export default function Header() {
 
                 {role === "SUPERUSER" && (
                     <div className="flex justify-between items-center w-[40%]">
-                        {["floor", "hall", "room"].map((page) => (
+                        {["floor"].map((page) => (
                             <p
                                 key={page}
                                 className="cursor-pointer hover:text-primary-5-hover hover:font-medium font-normal text-[20px]"
@@ -108,12 +108,6 @@ export default function Header() {
                         )}
                     </div>
 
-                    <p
-                        className="cursor-pointer text-[13px]"
-                        onClick={handleLanguage}>
-                        {language}
-                    </p>
-
                     <div className="h-[32px] w-[1px] bg-stroke"></div>
 
                     <div
@@ -122,7 +116,9 @@ export default function Header() {
                         onClick={() => setIsClicked(!isClicked)}>
                         <User className="w-8 h-8 rounded-full" />
                         <div>
-                            <p className="text-text text-[13px]">{userName}</p>
+                            <p className="text-text text-[13px]">
+                                {userNamelocal}
+                            </p>
                             <p className="text-unit text-[12px]">{role}</p>
                         </div>
                         <DropDown className="!w-3 !h-2" />

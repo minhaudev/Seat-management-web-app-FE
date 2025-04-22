@@ -33,10 +33,7 @@ export default function OrderNotice(props: PropsOrderNotice) {
 
         router.push(link);
     };
-    // const handle = () => {
-    //     console.log("update chưa ?");
-    //     router.push("/updating");
-    // };
+
     return latestNotices?.length !== 0 ?
             <div className="rounded-[10px] bg-white z-40 transition transform absolute min-w-[325px] h-auto shadow-[0px_4px_11px_0px_rgba(0,0,0,0.1)] left-[-149px] pt-4 mt-4">
                 <div className="font-medium mb-4 text-[16px] leading-[19.09px] text-text px-4">

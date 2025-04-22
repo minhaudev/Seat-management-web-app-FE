@@ -4,6 +4,8 @@ import {useRouter} from "next/navigation"; // Import useRouter
 import LayoutContainer from "../LayoutContainer";
 import Card from "@/components/molecules/Card";
 import {getAllFloor} from "@/services/manager/floor";
+import Breadcrumb from "@/components/atoms/Breadcrumb";
+import {HomeIcon} from "lucide-react";
 
 export interface Floor {
     id: string;
@@ -13,7 +15,8 @@ export interface Floor {
 
 export default function FloorList() {
     const [floorList, setFloorList] = useState<Floor[]>([]);
-    const router = useRouter(); // Khởi tạo router
+    const [isTimeout, setIsTimeout] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         const fetchFloors = async () => {
@@ -26,10 +29,30 @@ export default function FloorList() {
         };
 
         fetchFloors();
+        const timeout = setTimeout(() => {
+            setIsTimeout(true);
+        }, 10000);
+
+        return () => clearTimeout(timeout);
     }, []);
 
     return (
         <LayoutContainer isNav={false}>
+            <div>
+                <Breadcrumb
+                    breadcrumbs={[
+                        {
+                            url: "/",
+                            label: "Home",
+                            prefixIcon: <HomeIcon size={16} />
+                        },
+                        {
+                            url: "/floor",
+                            label: "Floor"
+                        }
+                    ]}
+                />
+            </div>
             <div className="grid grid-cols-3 gap-10 p-5">
                 {floorList?.length > 0 ?
                     floorList?.map((floor) => (
@@ -42,7 +65,10 @@ export default function FloorList() {
                             </p>
                         </Card>
                     ))
-                :   <p className="text-center col-span-3">Loading ...</p>}
+                :   <p className="text-center col-span-3">
+                        {!isTimeout ? "Loading..." : "Not data!"}
+                    </p>
+                }
             </div>
         </LayoutContainer>
     );

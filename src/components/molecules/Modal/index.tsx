@@ -13,6 +13,7 @@ interface Props {
     name?: string;
     subName?: string;
     onClose?: () => void;
+    isDisabled?: boolean;
 }
 
 export default function Modal({
@@ -23,7 +24,8 @@ export default function Modal({
     isOpen,
     name,
     subName,
-    onClose
+    onClose,
+    isDisabled
 }: Props) {
     return (
         <div
@@ -59,6 +61,7 @@ export default function Modal({
                     </div>
                     <div>
                         <Button
+                            isDisabled={isDisabled}
                             onClick={onClick}
                             className="text-primary font-medium text-[16px] leading-[19.09px] mb-1">
                             {nameBtn}

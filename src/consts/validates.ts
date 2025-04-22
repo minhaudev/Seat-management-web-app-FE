@@ -8,7 +8,8 @@ export const fieldInput = {
     QUANTITY: "quantity",
     PASSWORD: "password",
     USERNAME: "username",
-    BIRTHDAY: "birthday"
+    BIRTHDAY: "birthday",
+    TYPESEAT: "typeseat"
 };
 
 export const validateVietnameseName = /^[a-zA-ZÀ-ỹ\s]{2,}$/;

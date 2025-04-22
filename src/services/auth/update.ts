@@ -14,6 +14,8 @@ export const updateUser = async (
     data: {
         firstName?: string;
         lastName?: string;
+        projectId?: string;
+        teamId?: string;
         phone?: string;
         roles?: string[];
         roomId?: string;

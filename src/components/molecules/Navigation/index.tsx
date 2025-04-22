@@ -10,11 +10,16 @@ import {DraggableSeat} from "@/components/atoms/DraggableSeat";
 import Toast from "../Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import CreateSeatModal from "@/components/atoms/CreateSeatModal/CreateSeatModal";
-import {CreateObjectModal} from "@/components/atoms/CreateObjectModal";
 import Frame from "@/assets/svgs/frame_v2.svg";
 import {saveLayoutRoom, uploadImageRoom} from "@/services/manager/room";
+import {GetColors} from "@/services/manager/team";
+import {Spinner} from "@nextui-org/react";
 // import useWebSocket from "@/hooks/webSocket";
-
+interface color {
+    id: string;
+    name: string;
+    color: string;
+}
 function Navigation() {
     const {roomid} = useParams() as {roomid: string};
     const {
@@ -23,8 +28,11 @@ function Navigation() {
         setRoomValue,
         objects,
         refreshSeats,
-        updateSeatPosition
+        updateSeatPosition,
+        addObject
     } = useSeat();
+
+    const prevStrRef = useRef<string>("");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [expand, setExpand] = useState(false);
     const [section, setSection] = useState<string[]>([]);
@@ -37,6 +45,10 @@ function Navigation() {
     const [selectedFileName, setSelectedFileName] = useState<string | null>(
         null
     );
+    const [loadingMore, setLoadingMore] = useState(false);
+
+    const [teams, setTeams] = useState<color[]>();
+    const [projects, setProjects] = useState<color[]>();
 
     const handleToggle = (sectionName: string) => {
         setExpand(true);
@@ -69,12 +81,16 @@ function Navigation() {
             pageNumber: data?.data?.pageable?.pageNumber,
             pageSize: data?.data?.pageable?.pageSize
         }));
+
+        setLoadingMore(false);
     };
     useEffect(() => {
-        fetchSeats(page, 10);
+        fetchSeats(page, 5);
     }, [page]);
-    const handleLoadMore = () => setPage((prev) => prev + 1);
-
+    const handleLoadMore = () => {
+        setLoadingMore(true);
+        setPage((prev) => prev + 1);
+    };
     const saveLayoutSeat = async () => {
         try {
             const formattedSeats = seatList.seats.map(({id, ox, oy}) => ({
@@ -82,15 +98,12 @@ function Navigation() {
                 ox,
                 oy
             }));
-            const response = await savePositionSeat(formattedSeats, roomid);
-
-            if (response.code === 1000) setIsSaveLayout(true);
+            await savePositionSeat(formattedSeats, roomid);
         } catch (error) {
             console.error("Error saving layout:", error);
         }
     };
 
-    // useWebSocket(roomid, false);
     const seaveLayoutObject = async () => {
         try {
             const formattedObject = objects.map(
@@ -119,6 +132,33 @@ function Navigation() {
         } catch (error) {
             console.error("Error saving layout:", error);
         }
+    };
+
+    const prevFormattedRef = useRef<string>("");
+
+    const handleSaveLayout = () => {
+        const formattedObject = objects.map(
+            ({id, name, ox, oy, width, height, color}) => ({
+                id,
+                name,
+                ox,
+                oy,
+                width,
+                height,
+                color
+            })
+        );
+
+        const currentStr = JSON.stringify(formattedObject);
+
+        if (prevFormattedRef.current !== currentStr) {
+            seaveLayoutObject();
+            prevFormattedRef.current = currentStr;
+        } else {
+            console.log("Không thay đổi object layout, bỏ qua save");
+        }
+
+        saveLayoutSeat();
     };
 
     const hiddenFileInput = useRef<HTMLInputElement>(null);
@@ -170,6 +210,16 @@ function Navigation() {
         setSelectedFileName("");
         setIsOpenUpload(false);
     };
+    const getColors = async () => {
+        const res = await GetColors();
+        if (res) {
+            setTeams(res.teams || []);
+            setProjects(res.projects || []);
+        }
+    };
+    useEffect(() => {
+        getColors();
+    }, []);
     return (
         <div
             className={`min-h-screen z-10 transition-width duration-100 ${expand ? "w-64" : "w-14"} bg-primary pb-4`}>
@@ -223,95 +273,143 @@ function Navigation() {
                                 ))}
                         </ul>
                     )}
-
-                    <div className="mt-2 flex justify-between gap-2">
+                    <div className="mt-2">
                         {currentPage < seatList.totalPages && (
                             <Button
                                 variant="secondary"
+                                disabled={
+                                    seatList.pageNumber + 1 >=
+                                    seatList.totalPages
+                                }
                                 onClick={handleLoadMore}>
-                                Load More
+                                {loadingMore ?
+                                    <div className="flex items-center space-x-2">
+                                        <Spinner size="sm" />
+                                        <span>Loading...</span>
+                                    </div>
+                                :   "Load More"}
                             </Button>
-                        )}
+                        )}{" "}
+                    </div>
+
+                    <p className="text-white font-semibold">Select functions</p>
+                    <div className="mt-2 grid grid-cols-2 gap-2 ">
                         <Button
                             variant="dashed"
                             onClick={() => setIsSeatModalOpen(true)}>
                             CREATE SEAT
                         </Button>
-                        <Button variant="upload" onClick={saveLayoutSeat}>
+                        <Button
+                            onClick={() =>
+                                addObject({
+                                    id: "temp-" + crypto.randomUUID(),
+                                    name: "New Object",
+                                    ox: 50,
+                                    oy: 50,
+                                    width: 100,
+                                    height: 50,
+                                    color: "#cccccc"
+                                })
+                            }>
+                            ADD OBJECT
+                        </Button>
+
+                        <Button
+                            className="!px-1"
+                            variant="secondary"
+                            onClick={handleClick}>
+                            <p className="flex">
+                                <Frame /> PICTURE
+                            </p>
+                        </Button>
+                        <input
+                            className="bg-white"
+                            type="file"
+                            ref={hiddenFileInput}
+                            onChange={handleChange}
+                            style={{display: "none"}}
+                        />
+                    </div>
+                    <div className="mt-2">
+                        {isOpenUpload && selectedFileName && (
+                            <div className="mb-2">
+                                {selectedFileName && (
+                                    <p className="bg-white mt-2">
+                                        File Name: {selectedFileName}
+                                    </p>
+                                )}
+
+                                <div className="flex justify-around mt-2 gap-2">
+                                    <Button
+                                        variant="upload"
+                                        onClick={handleUpload}
+                                        disabled={!selectedFile}>
+                                        Upload
+                                    </Button>
+                                    <Button
+                                        variant="primary-dark"
+                                        onClick={handleCancel}>
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                        <Button variant="upload" onClick={handleSaveLayout}>
                             SAVE LAYOUT
                         </Button>
                     </div>
                 </div>
             )}
-
             <div
-                className="cursor-pointer text-white font-semibold p-1"
-                onClick={() => handleToggle("supplies")}>
-                {expand ? "Management Supplies" : "Supply"}
+                className="cursor-pointer text-white p-1 font-semibold"
+                onClick={() => handleToggle("notes")}>
+                {expand ? "Notion teams & project" : "notes"}
             </div>
-            <div className="px-4">
-                {expand && section.includes("supplies") && (
-                    <>
-                        <div
-                            className="flex gap-1 mt-2"
-                            onClick={(e) => e.stopPropagation()}>
-                            <Button
-                                variant="secondary"
-                                onClick={() => setIsObjectModalOpen(true)}>
-                                ADD OBJECT
-                            </Button>
-
-                            <Button
-                                onClick={seaveLayoutObject}
-                                variant="upload">
-                                SAVE LAYOUT
-                            </Button>
-                            <div>
-                                <Button
-                                    className="!px-1"
-                                    variant="secondary"
-                                    onClick={handleClick}>
-                                    <p className="flex">
-                                        <Frame /> PICTURE
-                                    </p>
-                                </Button>
-                                <input
-                                    className="bg-white"
-                                    type="file"
-                                    ref={hiddenFileInput}
-                                    onChange={handleChange}
-                                    style={{display: "none"}}
-                                />
-                            </div>
-                        </div>
-                        <div className="mt-2">
-                            {isOpenUpload && selectedFileName && (
-                                <div>
-                                    {selectedFileName && (
-                                        <p className="bg-white mt-2">
-                                            File Name: {selectedFileName}
-                                        </p>
-                                    )}
-                                    <div className="flex justify-around mt-2 gap-2">
-                                        <Button
-                                            variant="upload"
-                                            onClick={handleUpload}
-                                            disabled={!selectedFile}>
-                                            Upload
-                                        </Button>
-                                        <Button
-                                            variant="primary-dark"
-                                            onClick={handleCancel}>
-                                            Cancel
-                                        </Button>
-                                    </div>
+            {expand && section.includes("notes") && (
+                <div className="px-4 pb-4 space-y-4">
+                    <div>
+                        <p className="text-white p-1 font-semibold">TEAMS:</p>
+                        <div className="space-y-2">
+                            {teams?.map((team) => (
+                                <div
+                                    key={team?.id}
+                                    className="flex items-center space-x-2">
+                                    <div
+                                        className="w-4 h-4 rounded-full"
+                                        style={{
+                                            backgroundColor: team?.color
+                                        }}></div>
+                                    <span className="text-white">
+                                        {team?.name}
+                                    </span>
                                 </div>
-                            )}
+                            ))}
                         </div>
-                    </>
-                )}
-            </div>
+                    </div>
 
+                    <div>
+                        <p className="text-white p-1 font-semibold">
+                            PROJECTS:
+                        </p>
+                        <div className="space-y-2">
+                            {projects?.map((project) => (
+                                <div
+                                    key={project?.id}
+                                    className="flex items-center space-x-2">
+                                    <div
+                                        className="w-4 h-4 rounded-full"
+                                        style={{
+                                            backgroundColor: project?.color
+                                        }}></div>
+                                    <span className="text-white">
+                                        {project?.name}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
             <CreateSeatModal
                 isOpen={isSeatModalOpen}
                 onClose={() => setIsSeatModalOpen(false)}
@@ -319,10 +417,10 @@ function Navigation() {
                 roomId={roomid}
             />
 
-            <CreateObjectModal
+            {/* <CreateObjectModal
                 isOpen={isObjectModalOpen}
                 onClose={() => setIsObjectModalOpen(false)}
-            />
+            /> */}
             {isSaveLayout === true && (
                 <Toast
                     time={1000}

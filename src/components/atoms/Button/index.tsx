@@ -314,10 +314,10 @@ export default function Button(
                     {children}
                 </span>
             </button>
-            <small
+            {/* <small
                 className={`${isError ? "text-red focus:!outline-red" : "text-unit"}`}>
                 {heplerText}
-            </small>
+            </small> */}
         </>
     );
 }

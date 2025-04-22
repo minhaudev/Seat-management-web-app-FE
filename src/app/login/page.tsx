@@ -102,18 +102,29 @@ function Login() {
                     localStorage.removeItem("rememberedEmail");
                     localStorage.removeItem("rememberedPassword");
                 }
-                const {firstName, lastName, email, role, idUser, idRoom} =
-                    response.data;
+                const {
+                    firstName,
+                    lastName,
+                    email,
+                    role,
+                    idUser,
+                    idRoom,
+                    roomName,
+                    token
+                } = response.data;
                 localStorage.setItem("idUser", idUser);
                 localStorage.setItem("role", role);
-                localStorage.setItem("roomId", idRoom);
+                if (idRoom !== null && idRoom !== undefined) {
+                    localStorage.setItem("roomId", idRoom);
+                }
+
                 const nameUser =
                     firstName || lastName ?
                         `${firstName || ""} ${" "} ${lastName || ""}`
                     :   email;
-
+                localStorage.setItem("roomName", roomName);
                 localStorage.setItem("nameUser", nameUser);
-                localStorage.setItem("authToken", response.data.token);
+                localStorage.setItem("authToken", token);
                 const roleUser = localStorage.getItem("role");
                 router.push(roleUser === "SUPERUSER" ? "/" : `/room/${idRoom}`);
             } else {

@@ -13,6 +13,7 @@ import {assignUser, reassignUser} from "@/services/manager/seat";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import {URL_IMAGE} from "@/consts";
+
 interface AssignUserParams {
     idUser: string;
     idSeat: string;

@@ -10,8 +10,10 @@ import Button from "@/components/atoms/Button";
 import {UserInfo} from "@/interfaces/managerSeat";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import Toast from "@/components/molecules/Toast";
+import {useSeat} from "@/context/SeatContext";
 
 export default function PersonalInformation() {
+    const {setUserName} = useSeat();
     const [isSaveLayout, setIsSaveLayout] = useState(false);
     const [info, setInfo] = useState<UserInfo | null>(null);
 
@@ -47,10 +49,14 @@ export default function PersonalInformation() {
                 :   [],
             roomId: info.roomId ?? ""
         };
-
         try {
             const res = await updateUser(info.id, payload);
             if (res.code === 1000) {
+                if (res.code === 1000) {
+                    setUserName(`${info.firstName} ${info.lastName}`);
+                    setIsSaveLayout(true);
+                }
+
                 setIsSaveLayout(true);
             }
         } catch (error) {
@@ -69,50 +75,63 @@ export default function PersonalInformation() {
         <LayoutContainer isFooter={false} isNav={false}>
             <div className="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-4">
                 <h2 className="text-xl font-semibold text-center mb-4">
-                    Thông tin cá nhân
+                    Personal Information
                 </h2>
 
                 <Input
+                    label="FirstName:"
                     name="firstName"
                     value={info.firstName}
                     handleOnChange={handleChange}
-                    placeholder="Họ"
+                    placeholder="firstName"
                 />
                 <Input
+                    label="LastName:"
                     name="lastName"
                     value={info?.lastName}
                     handleOnChange={handleChange}
-                    placeholder="Tên"
+                    placeholder="LastName"
                 />
-                <Input name="email" value={info.email} isDisabled />
+
                 <Input
+                    label="Email:"
+                    name="email"
+                    value={info.email}
+                    isDisabled
+                />
+                <Input
+                    label="Phone"
                     name="phone"
                     value={info.phone}
                     handleOnChange={handleChange}
-                    placeholder="Số điện thoại"
+                    placeholder="Phone number"
                 />
                 <Input
+                    isDisabled
+                    label="Project:"
                     name="project"
                     value={info.project}
                     handleOnChange={handleChange}
                     placeholder="Project"
                 />
                 <Input
+                    isDisabled
+                    label="Team:"
                     name="team"
                     value={info.team}
                     handleOnChange={handleChange}
                     placeholder="Team"
                 />
                 <Input
+                    label="RoomName:"
                     name="roomId"
-                    value={info.roomId}
+                    value={localStorage.getItem("roomName") || ""}
                     isDisabled
                     placeholder="roomId"
                 />
-                <Input name="id" value={`IDUser: ${info.id}`} isDisabled />
 
                 <div className="text-right mt-6">
-                    <Button onClick={handleUpdate}>Cập nhật</Button>
+                    <Button onClick={handleUpdate}>UPDATE</Button>
                 </div>
             </div>
             {isSaveLayout === true && (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState, useEffect, useRef} from "react";
+import React, {useState, useEffect, useRef, use} from "react";
 import LayoutContainer from "@/app/LayoutContainer";
 import {useSeat, useUser} from "@/context/SeatContext";
 import {Seat, SeatListResponse} from "@/interfaces/managerSeat";
@@ -10,6 +10,12 @@ import ObjectComponent from "@/components/atoms/Rnd";
 import Modal from "@/components/molecules/Modal";
 import Input from "@/components/atoms/Input";
 import {assignUser, reassignUser} from "@/services/manager/seat";
+import Toast from "@/components/molecules/Toast";
+import {ToastPosition, ToastType} from "@/enums/ToastEnum";
+import {useParams} from "next/navigation";
+import {URL_IMAGE} from "@/consts";
+import Breadcrumb from "@/components/atoms/Breadcrumb";
+import {HomeIcon} from "lucide-react";
 interface AssignUserParams {
     idUser: string;
     idSeat: string;
@@ -19,15 +25,23 @@ interface ReAssignUserParams {
     idSeat: string;
 }
 export default function RoomDetails() {
-    const {seatList, roomValue, refreshSeats, updateSeatPosition, objects} =
-        useSeat();
+    const [isSaveLayout, setIsSaveLayout] = useState(false);
+    const {
+        seatList,
+        setSeatList,
+        roomValue,
+        refreshSeats,
+        updateSeatPosition,
+        objects,
+        refreshObject
+    } = useSeat();
     const {userList, refreshUsers} = useUser();
     const [localSeats, setLocalSeats] = useState<SeatListResponse>(seatList);
     const dropContainerRef = useRef<HTMLDivElement | null>(null);
-    const [hasBackground, setHasBackground] = useState(true);
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
     const [isOpenAsign, setIsOpenAsign] = useState(false);
     const [isOpenReassign, setIsOpenReassign] = useState(false);
+    const [role, setRole] = useState<string | null>(null);
     const [assign, setAssign] = useState<AssignUserParams>({
         idUser: "",
         idSeat: ""
@@ -36,20 +50,30 @@ export default function RoomDetails() {
         oldSeat: "",
         idSeat: ""
     });
+    const [isOn, setIsOn] = useState(false);
 
-    useEffect(() => {
-        setHasBackground(!!roomValue?.image);
-    }, [roomValue?.image]);
+    const toggleSwitch = () => {
+        setIsOn(!isOn);
+    };
 
     useEffect(() => {
         setLocalSeats(seatList);
     }, [seatList]);
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedRole = localStorage.getItem("role");
+            setRole(storedRole);
+        }
+    }, []);
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        if (role === "USER") return;
+
         e.preventDefault();
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        if (role === "USER") return;
         e.preventDefault();
         const seatData = e.dataTransfer.getData("seat");
         const positionMouse = e.dataTransfer.getData("positionMouse");
@@ -76,7 +100,7 @@ export default function RoomDetails() {
     };
 
     const backgroundStyle = {
-        backgroundImage: `url(http://localhost:8080${encodeURI(String(roomValue?.image))})`,
+        backgroundImage: `url(${URL_IMAGE}${encodeURI(String(roomValue?.image))})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"
@@ -120,26 +144,16 @@ export default function RoomDetails() {
         setIsOpenAsign(true);
         setMenu({visible: false, x: 0, y: 0, seatId: ""});
     };
-
     const handleAssignUser = async () => {
-        if (!assign?.idSeat || !assign?.idUser) {
-            alert("Vui lòng chọn ghế và nhập ID User.");
-            return;
-        }
-
         try {
             const response = await assignUser(assign.idSeat, assign.idUser);
-
             if (response.code === 1000) {
-                refreshUsers();
-                alert("Assign success!");
-            } else {
-                alert(response.message || "Assign failed!");
+                setAssign({idUser: "", idSeat: ""});
+                setIsOpenAsign(false);
+                setIsSaveLayout(true);
+                refreshSeats();
             }
-        } catch (error) {
-            console.error("Assign error:", error);
-            alert("Có lỗi xảy ra, vui lòng thử lại!");
-        }
+        } catch (error) {}
     };
 
     const handleReAssignUser = async () => {
@@ -148,10 +162,11 @@ export default function RoomDetails() {
                 reAssign.oldSeat,
                 reAssign.idSeat
             );
-
             if (response.code === 1000) {
-                refreshUsers();
-                alert("Asign success!");
+                setReAssign({oldSeat: "", idSeat: ""});
+                setIsOpenReassign(false);
+                setIsSaveLayout(true);
+                refreshSeats();
             }
         } catch (error) {}
     };
@@ -169,54 +184,58 @@ export default function RoomDetails() {
         value: user.id,
         label: `${user.firstName} ${user.lastName} (${user.email})`
     }));
+    useEffect(() => {
+        refreshObject();
+    }, []);
 
     return (
-        <LayoutContainer isFooter={false}>
+        // <AuthGuard>
+        <LayoutContainer
+            isNav={role === "USER" ? false : true}
+            isFooter={false}>
+            <div>
+                <Breadcrumb
+                    breadcrumbs={[
+                        {
+                            url: "/",
+                            label: "Home",
+                            prefixIcon: <HomeIcon size={16} />
+                        },
+                        {
+                            url: `/floor/${roomValue?.floorId}`,
+                            label: roomValue?.nameFloor
+                        },
+                        {
+                            url: `/floor/${roomValue?.floorId}/hall/${roomValue?.hallId}`,
+                            label: roomValue?.nameHall
+                        },
+                        {
+                            url: `/room/${roomValue?.id}`,
+                            label: roomValue?.name
+                        }
+                    ]}
+                />
+            </div>
             <div
                 ref={dropContainerRef}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
-                className="relative w-full h-full bg-gray-100 p-4"
+                className=" relative h-full w-full bg-gray-100 p-4"
                 style={{
-                    ...(hasBackground ? backgroundStyle : {}),
-
+                    ...(isOn ? backgroundStyle : {}),
                     position: "relative"
                 }}>
-                {localSeats?.seats ?
+                {localSeats?.seats && Array.isArray(localSeats.seats) ?
                     localSeats.seats
                         .filter((seat) => seat.ox !== 0 && seat.oy !== 0)
-                        .map((seat) => (
-                            <Tooltip
-                                key={seat.id}
-                                content={
-                                    <div className="text-left">
-                                        {seat.user?.id && (
-                                            <p>
-                                                <strong>ID:</strong>{" "}
-                                                {seat.user.id}
-                                            </p>
-                                        )}
-                                        {seat.user?.firstName && (
-                                            <p>
-                                                <strong>Name:</strong>{" "}
-                                                {seat.user.firstName}
-                                            </p>
-                                        )}
-                                        {seat.user?.team && (
-                                            <p>
-                                                <strong>Team:</strong>{" "}
-                                                {seat.user.team}
-                                            </p>
-                                        )}
-                                        {seat.user?.project && (
-                                            <p>
-                                                <strong>Project:</strong>{" "}
-                                                {seat.user.project}
-                                            </p>
-                                        )}
-                                    </div>
-                                }
-                                placement="top">
+                        .map((seat) => {
+                            const hasTooltipContent =
+                                seat.user?.id ||
+                                seat.user?.firstName ||
+                                seat.user?.team ||
+                                seat.user?.project;
+
+                            const seatContent = (
                                 <div
                                     onContextMenu={(e) =>
                                         handleContextMenu(e, seat)
@@ -228,11 +247,51 @@ export default function RoomDetails() {
                                     }}>
                                     <DraggableSeat seat={seat} />
                                 </div>
-                            </Tooltip>
-                        ))
+                            );
+
+                            return hasTooltipContent ?
+                                    <Tooltip
+                                        key={seat.id}
+                                        content={
+                                            <div className="text-left">
+                                                {seat.user?.id && (
+                                                    <p>
+                                                        <strong>ID:</strong>{" "}
+                                                        {seat.user.id}
+                                                    </p>
+                                                )}
+                                                {seat.user?.firstName && (
+                                                    <p>
+                                                        <strong>Name:</strong>{" "}
+                                                        {seat.user.firstName}
+                                                    </p>
+                                                )}
+                                                {seat.user?.team && (
+                                                    <p>
+                                                        <strong>Team:</strong>{" "}
+                                                        {seat.user.team}
+                                                    </p>
+                                                )}
+                                                {seat.user?.project && (
+                                                    <p>
+                                                        <strong>
+                                                            Project:
+                                                        </strong>{" "}
+                                                        {seat.user.project}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        }
+                                        placement="top">
+                                        {seatContent}
+                                    </Tooltip>
+                                :   <React.Fragment key={seat.id}>
+                                        {seatContent}
+                                    </React.Fragment>;
+                        })
                 :   null}
 
-                {menu?.visible ?
+                {menu.visible && (
                     <Tooltip
                         isOpen={menu.visible}
                         content={
@@ -270,10 +329,10 @@ export default function RoomDetails() {
                             }}
                         />
                     </Tooltip>
-                :   null}
+                )}
 
-                {!hasBackground &&
-                    objects.map((object) => (
+                {objects?.map((object) => (
+                    <>
                         <ObjectComponent
                             key={object.id}
                             id={object.id}
@@ -284,7 +343,8 @@ export default function RoomDetails() {
                             color={object.color}
                             value={object.name}
                         />
-                    ))}
+                    </>
+                ))}
                 {isOpenAsign && (
                     <Modal
                         onClick={handleAssignUser}
@@ -327,6 +387,32 @@ export default function RoomDetails() {
                     </Modal>
                 )}
             </div>
+            {isSaveLayout === true && (
+                <Toast
+                    position={ToastPosition.Top_Right}
+                    time={1000}
+                    type={ToastType.Success}
+                    description="Save layout Success!"
+                    isOpen={isSaveLayout}
+                    onClose={() => setIsSaveLayout(false)}
+                />
+            )}
+            {roomValue?.image && (
+                <div className="flex justify-center gap-1 absolute top-[57px] z-50 right-[0px]">
+                    <div
+                        onClick={toggleSwitch}
+                        className={`w-11 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                            isOn ? "bg-green" : "bg-gray"
+                        }`}>
+                        <div
+                            className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                                isOn ? "translate-x-6" : "translate-x-0"
+                            }`}
+                        />
+                    </div>
+                </div>
+            )}
         </LayoutContainer>
+        // </AuthGuard>
     );
 }
