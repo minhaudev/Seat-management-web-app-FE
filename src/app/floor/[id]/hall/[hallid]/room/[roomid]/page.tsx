@@ -36,6 +36,7 @@ export default function RoomDetails() {
         refreshObject
     } = useSeat();
     const {userList, refreshUsers} = useUser();
+    const [isLoading, setIsLoading] = useState(false);
     const [localSeats, setLocalSeats] = useState<SeatListResponse>(seatList);
     const dropContainerRef = useRef<HTMLDivElement | null>(null);
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
@@ -148,9 +149,9 @@ export default function RoomDetails() {
         try {
             const response = await assignUser(assign.idSeat, assign.idUser);
             if (response.code === 1000) {
+                setIsSaveLayout(true);
                 setAssign({idUser: "", idSeat: ""});
                 setIsOpenAsign(false);
-                setIsSaveLayout(true);
                 refreshSeats();
             }
         } catch (error) {}

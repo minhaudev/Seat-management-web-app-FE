@@ -40,8 +40,6 @@ export default function PersonalInformation() {
         const payload = {
             firstName: info.firstName,
             lastName: info.lastName,
-            project: info.project,
-            team: info.team,
             phone: info.phone ?? "",
             roles:
                 Array.isArray(info.roles) ?
@@ -111,7 +109,6 @@ export default function PersonalInformation() {
                     label="Project:"
                     name="project"
                     value={info.project}
-                    handleOnChange={handleChange}
                     placeholder="Project"
                 />
                 <Input
@@ -119,7 +116,6 @@ export default function PersonalInformation() {
                     label="Team:"
                     name="team"
                     value={info.team}
-                    handleOnChange={handleChange}
                     placeholder="Team"
                 />
                 <Input
