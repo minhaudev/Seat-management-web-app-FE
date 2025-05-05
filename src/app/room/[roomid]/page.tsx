@@ -62,11 +62,20 @@ export default function RoomDetails() {
         oldSeat: "",
         idSeat: ""
     });
-    const [isOn, setIsOn] = useState(false);
+    const [isOn, setIsOn] = useState(() => {
+        const saved = localStorage.getItem("toggleState");
+        return saved !== null ? JSON.parse(saved) : false;
+    });
+
     const roomId = localStorage.getItem("roomId") || "";
     const {connectionStatus} = useWebSockets(roomId);
+
+    useEffect(() => {
+        localStorage.setItem("toggleState", JSON.stringify(isOn));
+    }, [isOn]);
+
     const toggleSwitch = () => {
-        setIsOn(!isOn);
+        setIsOn((prev: any) => !prev);
     };
 
     useEffect(() => {
@@ -165,7 +174,8 @@ export default function RoomDetails() {
         backgroundImage: `url(${URL_IMAGE}${encodeURI(String(roomValue?.image))})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
-        backgroundRepeat: "no-repeat"
+        backgroundRepeat: "no-repeat",
+        width: "100%"
     };
 
     const handleContextMenu = (
