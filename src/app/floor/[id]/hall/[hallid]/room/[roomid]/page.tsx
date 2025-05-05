@@ -1,42 +1,51 @@
 "use client";
-
+import Joyride from "react-joyride";
 import React, {useState, useEffect, useRef, use} from "react";
 import LayoutContainer from "@/app/LayoutContainer";
 import {useSeat, useUser} from "@/context/SeatContext";
-import {Seat, SeatListResponse} from "@/interfaces/managerSeat";
+import ReactDatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import {
+    AssignUserParams,
+    ReAssignUserParams,
+    Seat,
+    SeatListResponse
+} from "@/interfaces/managerSeat";
 import {DraggableSeat} from "@/components/atoms/DraggableSeat";
 import {Tooltip} from "@nextui-org/react";
 import ObjectComponent from "@/components/atoms/Rnd";
 import Modal from "@/components/molecules/Modal";
 import Input from "@/components/atoms/Input";
-import {assignUser, reassignUser} from "@/services/manager/seat";
+
+import {
+    assignUser,
+    createSeat,
+    reassignUser,
+    removeAssignUser
+} from "@/services/manager/seat";
 import Toast from "@/components/molecules/Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
 import {useParams} from "next/navigation";
 import {URL_IMAGE} from "@/consts";
 import Breadcrumb from "@/components/atoms/Breadcrumb";
 import {HomeIcon} from "lucide-react";
-interface AssignUserParams {
-    idUser: string;
-    idSeat: string;
-}
-interface ReAssignUserParams {
-    oldSeat: string;
-    idSeat: string;
-}
+import {newDate} from "react-datepicker/dist/date_utils";
+import Countdown from "react-countdown";
+import {toVNLocalISOString} from "@/utils";
+
 export default function RoomDetails() {
     const [isSaveLayout, setIsSaveLayout] = useState(false);
     const {
         seatList,
-        setSeatList,
         roomValue,
         refreshSeats,
         updateSeatPosition,
         objects,
         refreshObject
     } = useSeat();
+    const [creatingSeat, setCreatingSeat] = useState<Seat | null>(null);
     const {userList, refreshUsers} = useUser();
-    const [isLoading, setIsLoading] = useState(false);
+    const {roomid} = useParams() as {roomid: string};
     const [localSeats, setLocalSeats] = useState<SeatListResponse>(seatList);
     const dropContainerRef = useRef<HTMLDivElement | null>(null);
     const [menu, setMenu] = useState({visible: false, x: 0, y: 0, seatId: ""});
@@ -44,15 +53,17 @@ export default function RoomDetails() {
     const [isOpenReassign, setIsOpenReassign] = useState(false);
     const [role, setRole] = useState<string | null>(null);
     const [assign, setAssign] = useState<AssignUserParams>({
+        temporaryTime: new Date(),
         idUser: "",
-        idSeat: ""
+        idSeat: "",
+        typeSeat: ""
     });
     const [reAssign, setReAssign] = useState<ReAssignUserParams>({
         oldSeat: "",
         idSeat: ""
     });
     const [isOn, setIsOn] = useState(false);
-
+    const [showGuide, setShowGuide] = useState(false);
     const toggleSwitch = () => {
         setIsOn(!isOn);
     };
@@ -73,30 +84,79 @@ export default function RoomDetails() {
         e.preventDefault();
     };
 
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
         if (role === "USER") return;
         e.preventDefault();
+        const typeSeatData = e.dataTransfer.getData("typeSeat");
         const seatData = e.dataTransfer.getData("seat");
         const positionMouse = e.dataTransfer.getData("positionMouse");
-        if (!seatData) return;
+        const isCreateSeat = e.dataTransfer?.getData("iscreateseat");
+        if (!positionMouse) return;
 
-        const {offsetX, offsetY} = JSON.parse(positionMouse);
-        const droppedSeat: Seat = JSON.parse(seatData);
+        let offsetX = 0,
+            offsetY = 0;
+        try {
+            const positionParsed = JSON.parse(positionMouse);
+            offsetX = positionParsed.offsetX;
+            offsetY = positionParsed.offsetY;
+        } catch (error) {
+            console.error("Error parsing positionMouse:", error);
+            return;
+        }
+
         const rect = dropContainerRef.current?.getBoundingClientRect();
-        if (rect) {
-            const newOx = e.clientX - rect.left - offsetX;
-            const newOy = e.clientY - rect.top - offsetY;
+        if (!rect) return;
 
-            setLocalSeats((prevState) => ({
-                ...prevState,
-                seats: prevState.seats.map((seat) =>
-                    seat.id === droppedSeat.id ?
-                        {...seat, ox: newOx, oy: newOy}
-                    :   seat
-                )
-            }));
+        const newOx = e.clientX - rect.left - offsetX;
+        const newOy = e.clientY - rect.top - offsetY;
 
-            updateSeatPosition(droppedSeat.id, newOx, newOy);
+        if (typeSeatData) {
+            let newSeatType;
+            try {
+                newSeatType = JSON.parse(typeSeatData);
+            } catch (error) {
+                console.error("Error parsing typeSeatData:", error);
+                return;
+            }
+
+            if (isCreateSeat && JSON.parse(isCreateSeat)) {
+                const tempId = `temp-${Date.now()}`;
+                const tempSeat: Seat = {
+                    id: tempId,
+                    name: "Creating...",
+                    ox: newOx,
+                    oy: newOy,
+                    user: undefined
+                };
+                setCreatingSeat(tempSeat);
+                await createSeat({
+                    name: newSeatType.name,
+                    ox: newOx,
+                    oy: newOy,
+                    roomId: roomid
+                });
+                await refreshSeats();
+                setCreatingSeat(null);
+                e.dataTransfer.setData("iscreateseat", JSON.stringify("false"));
+            } else if (seatData) {
+                let droppedSeat: Seat;
+                try {
+                    droppedSeat = JSON.parse(seatData);
+                } catch (error) {
+                    console.error("Error parsing seatData:", error);
+                    return;
+                }
+                setLocalSeats((prevState) => {
+                    const updatedSeats = prevState.seats.map((seat) =>
+                        seat.id === droppedSeat.id ?
+                            {...seat, ox: newOx, oy: newOy}
+                        :   seat
+                    );
+                    return {...prevState, seats: updatedSeats};
+                });
+
+                updateSeatPosition(droppedSeat.id, newOx, newOy);
+            }
         }
     };
 
@@ -145,17 +205,65 @@ export default function RoomDetails() {
         setIsOpenAsign(true);
         setMenu({visible: false, x: 0, y: 0, seatId: ""});
     };
+
     const handleAssignUser = async () => {
         try {
-            const response = await assignUser(assign.idSeat, assign.idUser);
+            const response = await assignUser(
+                assign.idSeat,
+                assign.idUser,
+                assign.typeSeat,
+                assign.temporaryTime ?
+                    toVNLocalISOString(assign.temporaryTime)
+                :   ""
+            );
+
             if (response.code === 1000) {
                 setIsSaveLayout(true);
-                setAssign({idUser: "", idSeat: ""});
+                setAssign({
+                    idUser: "",
+                    idSeat: "",
+                    typeSeat: "",
+                    temporaryTime: new Date()
+                });
                 setIsOpenAsign(false);
-                refreshSeats();
+                await refreshSeats();
+
+                if (assign.temporaryTime) {
+                    const now = Date.now();
+                    const expireAt = assign.temporaryTime.getTime();
+                    const diffSeconds = Math.floor((expireAt - now) / 1000);
+
+                    if (diffSeconds > 0) {
+                        setSeatTimes((prev) => ({
+                            ...prev,
+                            [assign.idSeat]: diffSeconds
+                        }));
+                    }
+                }
             }
-        } catch (error) {}
+        } catch (error) {
+            console.error("Assign user failed:", error);
+        }
     };
+
+    const [seatTimes, setSeatTimes] = useState<{[seatId: string]: number}>({});
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSeatTimes((prev) => {
+                const updated: {[id: string]: number} = {};
+                for (const id in prev) {
+                    const newTime = prev[id] - 1;
+                    if (newTime > 0) {
+                        updated[id] = newTime;
+                    }
+                }
+                return updated;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleReAssignUser = async () => {
         try {
@@ -163,6 +271,7 @@ export default function RoomDetails() {
                 reAssign.oldSeat,
                 reAssign.idSeat
             );
+
             if (response.code === 1000) {
                 setReAssign({oldSeat: "", idSeat: ""});
                 setIsOpenReassign(false);
@@ -189,8 +298,21 @@ export default function RoomDetails() {
         refreshObject();
     }, []);
 
+    const handleDateChange = (date: Date | null) => {
+        if (date) {
+            setAssign((prev) => ({
+                ...prev,
+                temporaryTime: date
+            }));
+        }
+    };
+
+    const handleRemoveUser = async (id: string) => {
+        const res = await removeAssignUser(id);
+        await refreshSeats();
+    };
+
     return (
-        // <AuthGuard>
         <LayoutContainer
             isNav={role === "USER" ? false : true}
             isFooter={false}>
@@ -221,7 +343,7 @@ export default function RoomDetails() {
                 ref={dropContainerRef}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
-                className=" relative h-full w-full bg-gray-100 p-4"
+                className=" relative h-full w-full bg-gray-100 p-4 "
                 style={{
                     ...(isOn ? backgroundStyle : {}),
                     position: "relative"
@@ -246,7 +368,13 @@ export default function RoomDetails() {
                                         top: `${seat.oy}px`,
                                         position: "absolute"
                                     }}>
-                                    <DraggableSeat seat={seat} />
+                                    <DraggableSeat
+                                        // timeRemaining={seatTimes[seat.id] ?? 0}
+                                        seat={seat}
+                                        onTimeout={() =>
+                                            handleRemoveUser(seat.id)
+                                        }
+                                    />
                                 </div>
                             );
 
@@ -281,6 +409,28 @@ export default function RoomDetails() {
                                                         {seat.user.project}
                                                     </p>
                                                 )}
+                                                {seat.expiredAt && (
+                                                    <p>
+                                                        <strong>
+                                                            Expired At:
+                                                        </strong>{" "}
+                                                        <Countdown
+                                                            date={
+                                                                new Date(
+                                                                    seat.expiredAt
+                                                                )
+                                                            }
+                                                            renderer={({
+                                                                days,
+                                                                hours,
+                                                                minutes,
+                                                                seconds
+                                                            }) => (
+                                                                <span>{`${days}d ${hours}h ${minutes}m ${seconds}s`}</span>
+                                                            )}
+                                                        />
+                                                    </p>
+                                                )}
                                             </div>
                                         }
                                         placement="top">
@@ -291,7 +441,17 @@ export default function RoomDetails() {
                                     </React.Fragment>;
                         })
                 :   null}
-
+                {creatingSeat && (
+                    <div
+                        key={creatingSeat.id}
+                        style={{
+                            left: `${creatingSeat.ox}px`,
+                            top: `${creatingSeat.oy}px`,
+                            position: "absolute"
+                        }}>
+                        <DraggableSeat seat={creatingSeat} />
+                    </div>
+                )}
                 {menu.visible && (
                     <Tooltip
                         isOpen={menu.visible}
@@ -300,20 +460,33 @@ export default function RoomDetails() {
                                 {!localSeats.seats.find(
                                     (s) => s.id === menu.seatId
                                 )?.user && (
-                                    <p
-                                        className="cursor-pointer hover:text-gray-6 rounded"
-                                        onClick={handleAssign}>
-                                        Assign
-                                    </p>
+                                    <div>
+                                        <p
+                                            className="cursor-pointer hover:text-gray-6 rounded"
+                                            onClick={handleAssign}>
+                                            Assign
+                                        </p>
+                                    </div>
                                 )}
                                 {localSeats.seats.find(
                                     (s) => s.id === menu.seatId
                                 )?.user && (
-                                    <p
-                                        className="cursor-pointer hover:text-gray-6 rounded"
-                                        onClick={() => setIsOpenReassign(true)}>
-                                        Reassign
-                                    </p>
+                                    <div>
+                                        <p
+                                            className="cursor-pointer hover:text-gray-6 rounded"
+                                            onClick={() =>
+                                                setIsOpenReassign(true)
+                                            }>
+                                            Reassign
+                                        </p>
+                                        <p
+                                            onClick={() =>
+                                                handleRemoveUser(menu.seatId)
+                                            }
+                                            className="cursor-pointer hover:text-gray-6 rounded">
+                                            Remove
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                         }
@@ -354,6 +527,8 @@ export default function RoomDetails() {
                         nameBtn="Asign"
                         onClose={() => setIsOpenAsign(false)}>
                         <Input
+                            label="User:"
+                            require
                             value={assign.idUser ?? ""}
                             handleSelectChange={(e: any) => {
                                 setAssign((prev) => ({
@@ -365,6 +540,33 @@ export default function RoomDetails() {
                             optionSelect={userOptions}
                             placeholder="User Asign"
                         />
+                        <Input
+                            label="TypeSeat:"
+                            require
+                            variant="select"
+                            optionSelect={[
+                                {label: "Temporary", value: "TEMPORARY"},
+                                {label: "Permanent", value: "PERMANENT"}
+                            ]}
+                            value={assign.typeSeat}
+                            handleSelectChange={(e: any) => {
+                                setAssign((prev) => ({
+                                    ...prev,
+                                    typeSeat: e.target.value
+                                }));
+                            }}
+                        />
+                        {assign.typeSeat === "TEMPORARY" && (
+                            <div>
+                                <label>Choose Time (End time):</label>
+                                <ReactDatePicker
+                                    selected={assign.temporaryTime}
+                                    onChange={handleDateChange}
+                                    showTimeSelect
+                                    dateFormat="Pp"
+                                />
+                            </div>
+                        )}
                     </Modal>
                 )}
                 {isOpenReassign && (
@@ -399,10 +601,10 @@ export default function RoomDetails() {
                 />
             )}
             {roomValue?.image && (
-                <div className="flex justify-center gap-1 absolute top-[57px] z-50 right-[0px]">
+                <div className="flex justify-center gap-1 absolute top-[57px] z-50 right-[0px] ">
                     <div
                         onClick={toggleSwitch}
-                        className={`w-11 h-5 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                        className={`w-11 h-5 flex items-center  rounded-full p-1 cursor-pointer transition-colors duration-300 ${
                             isOn ? "bg-green" : "bg-gray"
                         }`}>
                         <div
@@ -414,6 +616,5 @@ export default function RoomDetails() {
                 </div>
             )}
         </LayoutContainer>
-        // </AuthGuard>
     );
 }

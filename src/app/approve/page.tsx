@@ -12,13 +12,16 @@ import {
 import {approveLayout, rejectLayout} from "@/services/manager/room";
 import {useSeat} from "@/context/SeatContext";
 import Link from "next/link";
+import {Check, Pencil, Trash2, X} from "lucide-react";
+import Button from "@/components/atoms/Button";
 
 function Approve() {
+    const {valueApprove, refreshApprove} = useSeat();
+    const [data, setData] = useState(valueApprove);
+
     useEffect(() => {
         refreshApprove();
     }, []);
-    const {valueApprove, refreshApprove} = useSeat();
-    const [data, setData] = useState(valueApprove);
 
     useEffect(() => {
         setData(valueApprove);
@@ -26,7 +29,7 @@ function Approve() {
 
     const handleStatusChange = async (
         roomId: string,
-        newStatus: "Pending" | "Approve" | "Reject"
+        newStatus: "Approve" | "Reject"
     ) => {
         setData((prevData) =>
             prevData.map((room) =>
@@ -37,7 +40,7 @@ function Approve() {
         try {
             if (newStatus === "Approve") {
                 await approveLayout(roomId);
-            } else if (newStatus === "Reject") {
+            } else {
                 await rejectLayout(roomId);
             }
             refreshApprove();
@@ -72,22 +75,29 @@ function Approve() {
                                 </Link>
                             </TableCell>
                             <TableCell>
-                                <select
-                                    value={item.status}
-                                    onChange={(e) =>
-                                        handleStatusChange(
-                                            item.roomId,
-                                            e.target.value as
-                                                | "Pending"
-                                                | "Approve"
-                                                | "Reject"
-                                        )
-                                    }
-                                    className="border p-1 rounded">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Approve">Approve</option>
-                                    <option value="Reject">Reject</option>
-                                </select>
+                                <div className="flex gap-3 items-center justify-center">
+                                    <button
+                                        onClick={() =>
+                                            handleStatusChange(
+                                                item.roomId,
+                                                "Approve"
+                                            )
+                                        }
+                                        className="bg-green text-white p-2 rounded hover:bg-greenLight">
+                                        <Check size={16} />
+                                    </button>
+
+                                    <button
+                                        onClick={() =>
+                                            handleStatusChange(
+                                                item.roomId,
+                                                "Reject"
+                                            )
+                                        }
+                                        className="bg-red text-white p-2 rounded hover:bg-red-bold">
+                                        <X size={16} />
+                                    </button>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}

@@ -41,6 +41,7 @@ export default function PersonalInformation() {
             firstName: info.firstName,
             lastName: info.lastName,
             phone: info.phone ?? "",
+            email: info.email,
             roles:
                 Array.isArray(info.roles) ?
                     info.roles.map((role) => role.name)

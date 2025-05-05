@@ -74,6 +74,26 @@ export const SeatProvider = ({children}: {children: React.ReactNode}) => {
         if (stored) setUserName(stored);
     }, []);
 
+    useEffect(() => {
+        const storedNoti = localStorage.getItem("notifications");
+        if (storedNoti) {
+            try {
+                setNotifications(JSON.parse(storedNoti));
+            } catch (e) {
+                console.error("Failed to parse stored notifications", e);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (notifications.length > 0) {
+            localStorage.setItem(
+                "notifications",
+                JSON.stringify(notifications)
+            );
+        }
+    }, [notifications]);
+
     const updateUserName = (name: string) => {
         localStorage.setItem("userName", name);
         setUserName(name);

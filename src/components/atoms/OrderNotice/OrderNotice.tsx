@@ -5,6 +5,7 @@ import Button from "../Button";
 import {formatDate} from "@/utils/FormatDate";
 import {NotificationItem} from "@/interfaces/managerSeat";
 import {useParams, useRouter} from "next/navigation";
+import {useSeat} from "@/context/SeatContext";
 
 interface PropsOrderNotice {
     total?: number;
@@ -14,7 +15,7 @@ interface PropsOrderNotice {
 export default function OrderNotice(props: PropsOrderNotice) {
     const {roomid} = useParams() as {roomid: string};
     const router = useRouter();
-
+    const {setNotifications} = useSeat();
     const getLinkFromNotification = (item: NotificationItem) => {
         if (item.type === "SUPERUSER") {
             return "/approve";
@@ -33,7 +34,11 @@ export default function OrderNotice(props: PropsOrderNotice) {
 
         router.push(link);
     };
-
+    const handleDeleteNotifications = () => {
+        localStorage.removeItem("notifications");
+        setNotifications([]);
+        window.location.reload();
+    };
     return latestNotices?.length !== 0 ?
             <div className="rounded-[10px] bg-white z-40 transition transform absolute min-w-[325px] h-auto shadow-[0px_4px_11px_0px_rgba(0,0,0,0.1)] left-[-149px] pt-4 mt-4">
                 <div className="font-medium mb-4 text-[16px] leading-[19.09px] text-text px-4">
@@ -52,9 +57,14 @@ export default function OrderNotice(props: PropsOrderNotice) {
                         </p>
                     </div>
                 ))}
-
-                {(total ?? 0) > 5 && (
-                    <div className="text-center pb-4">
+                <div className="text-center flex justify-around items-center pb-4">
+                    {" "}
+                    <button
+                        onClick={handleDeleteNotifications}
+                        className="text-[14px] font-medium text-red leading-[16.71px] mt-4">
+                        Delete
+                    </button>
+                    {(total ?? 0) > 5 && (
                         <button
                             onClick={() => {
                                 router.push("/updating");
@@ -66,8 +76,8 @@ export default function OrderNotice(props: PropsOrderNotice) {
                         >
                             See all
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         :   null;
 }

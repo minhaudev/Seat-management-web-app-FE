@@ -110,13 +110,15 @@ function Login() {
                     idUser,
                     idRoom,
                     roomName,
-                    token
+                    token,
+                    firstLogin
                 } = response.data;
                 localStorage.setItem("idUser", idUser);
                 localStorage.setItem("role", role);
                 if (idRoom !== null && idRoom !== undefined) {
                     localStorage.setItem("roomId", idRoom);
                 }
+                localStorage.setItem("isFirstLogin", firstLogin);
 
                 const nameUser =
                     firstName || lastName ?

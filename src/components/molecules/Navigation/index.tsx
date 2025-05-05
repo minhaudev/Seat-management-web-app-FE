@@ -5,7 +5,11 @@ import Button from "@/components/atoms/Button";
 import "../../../app/globals.css";
 import {useSeat} from "@/context/SeatContext";
 import {useParams} from "next/navigation";
-import {savePositionSeat, paginationSeat} from "@/services/manager/seat";
+import {
+    savePositionSeat,
+    paginationSeat,
+    getAllTypeSeat
+} from "@/services/manager/seat";
 import {DraggableSeat} from "@/components/atoms/DraggableSeat";
 import Toast from "../Toast";
 import {ToastPosition, ToastType} from "@/enums/ToastEnum";
@@ -14,11 +18,17 @@ import Frame from "@/assets/svgs/frame_v2.svg";
 import {saveLayoutRoom, uploadImageRoom} from "@/services/manager/room";
 import {GetColors} from "@/services/manager/team";
 import {Spinner} from "@nextui-org/react";
+import Joyride from "react-joyride";
 // import useWebSocket from "@/hooks/webSocket";
 interface color {
     id: string;
     name: string;
     color: string;
+}
+interface ItypeSeat {
+    id: string;
+    name: string;
+    description: string | null;
 }
 function Navigation() {
     const {roomid} = useParams() as {roomid: string};
@@ -31,8 +41,7 @@ function Navigation() {
         updateSeatPosition,
         addObject
     } = useSeat();
-
-    const prevStrRef = useRef<string>("");
+    const [typeSeat, setTypeSeat] = useState<ItypeSeat[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [expand, setExpand] = useState(false);
     const [section, setSection] = useState<string[]>([]);
@@ -84,9 +93,7 @@ function Navigation() {
 
         setLoadingMore(false);
     };
-    useEffect(() => {
-        fetchSeats(page, 5);
-    }, [page]);
+
     const handleLoadMore = () => {
         setLoadingMore(true);
         setPage((prev) => prev + 1);
@@ -108,7 +115,7 @@ function Navigation() {
         try {
             const formattedObject = objects.map(
                 ({id, name, ox, oy, width, height, color}) => ({
-                    id,
+                    id: id.startsWith("temp-") ? id.replace("temp-", "") : id,
                     name,
                     ox,
                     oy,
@@ -117,11 +124,14 @@ function Navigation() {
                     color
                 })
             );
+
             const role =
                 typeof window !== "undefined" ?
                     localStorage.getItem("role")
                 :   " ";
+
             const response = await saveLayoutRoom(roomid, formattedObject);
+
             if (response && response.code === 1000) {
                 if (role === "SUPERUSER") {
                     setIsSaveLayout(true);
@@ -150,14 +160,7 @@ function Navigation() {
         );
 
         const currentStr = JSON.stringify(formattedObject);
-
-        if (prevFormattedRef.current !== currentStr) {
-            seaveLayoutObject();
-            prevFormattedRef.current = currentStr;
-        } else {
-            console.log("Không thay đổi object layout, bỏ qua save");
-        }
-
+        seaveLayoutObject();
         saveLayoutSeat();
     };
 
@@ -217,20 +220,103 @@ function Navigation() {
             setProjects(res.projects || []);
         }
     };
+    const getTypeSeats = async () => {
+        const res = await getAllTypeSeat();
+        if (res?.code === 1000) {
+            setTypeSeat(res?.data);
+        }
+    };
     useEffect(() => {
+        getTypeSeats();
         getColors();
     }, []);
+
+    const [run, setRun] = useState(false);
+    useEffect(() => {
+        const isFirstLogin = localStorage.getItem("isFirstLogin") !== "false";
+        if (isFirstLogin) {
+            localStorage.setItem("isFirstLogin", "false");
+            setTimeout(() => setRun(true), 100);
+        }
+    }, []);
+
+    const steps = [
+        {
+            target: ".first-step",
+            content: "click to open Navbar."
+        },
+        {
+            target: ".second-step",
+            content: "create type seat."
+        },
+        {
+            target: ".third-step",
+            content: `Create add object such as "Wall", 
+        "Door", "Table" ...`
+        },
+        {
+            target: ".four-step",
+            content: `create image as wallpaper`
+        },
+        {
+            target: ".five-step",
+            content: `saves layout information`
+        }
+    ];
+
     return (
         <div
             className={`min-h-screen z-10 transition-width duration-100 ${expand ? "w-64" : "w-14"} bg-primary pb-4`}>
+            <Joyride
+                steps={steps}
+                run={run}
+                continuous
+                showSkipButton
+                showProgress
+                scrollToFirstStep
+                disableScrolling={false}
+                debug={true}
+                styles={{
+                    options: {
+                        zIndex: 10000,
+                        primaryColor: "#4CAF50"
+                    }
+                }}
+                callback={(data) => {
+                    const {index, type, status} = data;
+
+                    if (type === "step:before") {
+                        if (!expand) {
+                            setExpand(true);
+                            handleToggle("seat");
+                        }
+
+                        if (
+                            (index === 1 || index === 2) &&
+                            !section.includes("seat")
+                        ) {
+                            handleToggle("seat");
+                        }
+
+                        if (index === 3 && !section.includes("notes")) {
+                            handleToggle("notes");
+                        }
+                    }
+
+                    if (["finished", "skipped"].includes(status)) {
+                        setRun(false);
+                    }
+                }}
+            />
             <div className="sticky top-0 h-14 z-50 bg-primary flex items-center justify-between px-2">
                 {expand && (
-                    <p className="text-[32px] font-semibold text-white">
+                    <p className="text-[32px] font-semibold text-white ">
                         Smart
                     </p>
                 )}
                 <Button
                     isIcon
+                    className="first-step"
                     variant="primary-dark"
                     color="white"
                     size="medium"
@@ -252,54 +338,45 @@ function Navigation() {
                     onDrop={handleDropInNavigation}
                     onDragOver={(e) => e.preventDefault()}>
                     <p className="text-white font-medium mb-2 text-[14px]">
-                        Total Seats:{" "}
-                        {String(
-                            (seatList?.seats ?? []).filter(
-                                (seat) => seat.ox === 0 && seat.oy === 0
-                            ).length || 0
-                        ).padStart(2, "0")}
+                        Total Type:{" "}
+                        {typeSeat?.length ?
+                            typeSeat.length.toString().padStart(2, "0")
+                        :   "0"}
                     </p>
 
-                    {(seatList?.seats ?? []).some(
-                        (seat) => seat.ox === 0 && seat.oy === 0
-                    ) && (
-                        <ul className="grid grid-cols-2 gap-2">
-                            {seatList.seats
-                                .filter(
-                                    (seat) => seat.ox === 0 && seat.oy === 0
-                                )
-                                .map((seat) => (
-                                    <DraggableSeat key={seat.id} seat={seat} />
-                                ))}
-                        </ul>
-                    )}
-                    <div className="mt-2">
-                        {currentPage < seatList.totalPages && (
-                            <Button
-                                variant="secondary"
-                                disabled={
-                                    seatList.pageNumber + 1 >=
-                                    seatList.totalPages
-                                }
-                                onClick={handleLoadMore}>
-                                {loadingMore ?
-                                    <div className="flex items-center space-x-2">
-                                        <Spinner size="sm" />
-                                        <span>Loading...</span>
-                                    </div>
-                                :   "Load More"}
-                            </Button>
-                        )}{" "}
-                    </div>
+                    <ul className="grid grid-cols-2 gap-2">
+                        {typeSeat.map((seatType) => (
+                            <li
+                                key={seatType.id}
+                                draggable
+                                onDragStart={(e) => {
+                                    e.dataTransfer.setData(
+                                        "typeSeat",
+                                        JSON.stringify(seatType)
+                                    );
+                                    e.dataTransfer.setData(
+                                        "iscreateseat",
+                                        JSON.stringify("true")
+                                    );
+                                    const rect =
+                                        e.currentTarget.getBoundingClientRect();
+                                    const offsetX = e.clientX - rect.left;
+                                    const offsetY = e.clientY - rect.top;
+                                    e.dataTransfer.setData(
+                                        "positionMouse",
+                                        JSON.stringify({offsetX, offsetY})
+                                    );
+                                }}
+                                className="p-1 text-center border border-gray bg-white cursor-grab w-[108px] h-[45px] flex justify-center items-center">
+                                {seatType.name}
+                            </li>
+                        ))}
+                    </ul>
 
                     <p className="text-white font-semibold">Select functions</p>
                     <div className="mt-2 grid grid-cols-2 gap-2 ">
                         <Button
-                            variant="dashed"
-                            onClick={() => setIsSeatModalOpen(true)}>
-                            CREATE SEAT
-                        </Button>
-                        <Button
+                            className="third-step"
                             onClick={() =>
                                 addObject({
                                     id: "temp-" + crypto.randomUUID(),
@@ -315,7 +392,14 @@ function Navigation() {
                         </Button>
 
                         <Button
-                            className="!px-1"
+                            variant="dashed"
+                            className="second-step"
+                            onClick={() => setIsSeatModalOpen(true)}>
+                            ADD TYPE
+                        </Button>
+
+                        <Button
+                            className="!px-1 four-step"
                             variant="secondary"
                             onClick={handleClick}>
                             <p className="flex">
@@ -354,7 +438,10 @@ function Navigation() {
                                 </div>
                             </div>
                         )}
-                        <Button variant="upload" onClick={handleSaveLayout}>
+                        <Button
+                            className="five-step"
+                            variant="upload"
+                            onClick={handleSaveLayout}>
                             SAVE LAYOUT
                         </Button>
                     </div>
@@ -413,14 +500,9 @@ function Navigation() {
             <CreateSeatModal
                 isOpen={isSeatModalOpen}
                 onClose={() => setIsSeatModalOpen(false)}
-                onSeatCreated={refreshSeats}
                 roomId={roomid}
+                getTypeSeats={getTypeSeats}
             />
-
-            {/* <CreateObjectModal
-                isOpen={isObjectModalOpen}
-                onClose={() => setIsObjectModalOpen(false)}
-            /> */}
             {isSaveLayout === true && (
                 <Toast
                     time={1000}

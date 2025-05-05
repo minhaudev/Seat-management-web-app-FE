@@ -22,7 +22,9 @@ export default function Header() {
 
     const router = useRouter();
     const userNamelocal =
-        typeof window !== "undefined" ? userName || "Guest" : "Guest";
+        typeof window !== "undefined" ?
+            userName || localStorage.getItem("nameUser")
+        :   "Guest";
 
     const role =
         typeof window !== "undefined" ? localStorage.getItem("role") : " ";

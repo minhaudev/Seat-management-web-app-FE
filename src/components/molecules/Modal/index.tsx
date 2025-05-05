@@ -59,17 +59,16 @@ export default function Modal({
                     <div className="flex items-center justify-end gap-x-2 px-4 pb-0 md:p-5 rounded-b dark:border-gray-600">
                         {/* Additional footer content if needed */}
                     </div>
-                    <div>
-                        <Button
-                            isDisabled={isDisabled}
-                            onClick={onClick}
-                            className="text-primary font-medium text-[16px] leading-[19.09px] mb-1">
-                            {nameBtn}
-                        </Button>
-                        {/* <p className="font-normal text-[13px] leading-[15.51px] text-gray">
-                            {subName}
-                        </p> */}
-                    </div>
+                    {onClick && (
+                        <div>
+                            <Button
+                                isDisabled={isDisabled}
+                                onClick={onClick}
+                                className="text-primary font-medium text-[16px] leading-[19.09px] mb-1">
+                                {nameBtn}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

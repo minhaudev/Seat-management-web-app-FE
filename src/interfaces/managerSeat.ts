@@ -1,7 +1,7 @@
 export interface Seat {
     id: string;
-    number: string;
-    status: string;
+    number?: string;
+    status?: string;
     ox: number;
     oy: number;
     name?: string;
@@ -9,6 +9,7 @@ export interface Seat {
     user?: User;
     description?: string;
     typeSeat?: string;
+    expiredAt?: string;
 }
 export interface SeatListResponse {
     seats: Seat[]; // Danh sách ghế
@@ -127,4 +128,15 @@ export interface UserInfoResponse {
     code: number;
     data: UserInfo;
     timestamp: string;
+}
+export interface AssignUserParams {
+    temporaryTime?: Date | any;
+    idUser: string;
+    idSeat: string;
+    typeSeat: string;
+}
+
+export interface ReAssignUserParams {
+    oldSeat: string;
+    idSeat: string;
 }

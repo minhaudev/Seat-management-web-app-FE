@@ -17,20 +17,15 @@ export const seatListInRoom = async (id: string) => {
         return error?.response?.data;
     }
 };
-export const createSeat = async (
-    userId: string,
-    name: string,
-    typeSeat: string,
-    roomId: string,
-    description?: string
-) => {
+interface CreateSeatParams {
+    name?: string;
+    ox: number;
+    oy: number;
+    roomId?: string;
+}
+export const createSeat = async ({name, ox, oy, roomId}: CreateSeatParams) => {
     try {
-        const payload: any = {name, typeSeat, roomId, description};
-
-        if (userId.trim() !== "") {
-            payload.userId = userId;
-        }
-
+        const payload = {name, ox, oy, roomId};
         const response = await request.post(`seats`, payload);
         return response.data;
     } catch (error: any) {
@@ -38,10 +33,16 @@ export const createSeat = async (
     }
 };
 
-export const assignUser = async (id: string, idUser: string) => {
+export const assignUser = async (
+    id: string,
+    idUser: string,
+    typeseat: string,
+    temporaryTime: string
+) => {
     try {
         const response = await request.post(
-            `seats/${id}/assign?idUser=${idUser}`
+            `seats/${id}/assign?idUser=${idUser}`,
+            {typeSeat: typeseat, expiredAt: temporaryTime}
         );
         return response.data;
     } catch (error: any) {
@@ -85,5 +86,39 @@ export const paginationSeat = async (
         return response.data;
     } catch (error: any) {
         return error?.response?.data;
+    }
+};
+export const removeAssignUser = async (idSeat: string) => {
+    try {
+        const response = await request.post(`/seats/${idSeat}/remove`);
+        return response.data;
+    } catch (error: any) {
+        return error?.response?.data;
+    }
+};
+
+export const getAllTypeSeat = async () => {
+    try {
+        const res = await request.get(`/typeseats`);
+        return res.data;
+    } catch (err: any) {
+        return err.response?.data;
+    }
+};
+export const deleteTypeSeat = async (id: string) => {
+    try {
+        const res = await request.delete(`/typeseats/${id}`);
+        return res.data;
+    } catch (error: any) {
+        return error.response.data;
+    }
+};
+
+export const createTypeSeat = async (name: string) => {
+    try {
+        const res = await request.post(`/typeseats`, {name: name});
+        return res.data;
+    } catch (error: any) {
+        return error.response.data;
     }
 };
