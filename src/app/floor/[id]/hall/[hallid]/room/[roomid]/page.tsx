@@ -227,6 +227,7 @@ export default function RoomDetails() {
                 });
                 setIsOpenAsign(false);
                 await refreshSeats();
+                await refreshUsers();
 
                 if (assign.temporaryTime) {
                     const now = Date.now();
@@ -277,6 +278,7 @@ export default function RoomDetails() {
                 setIsOpenReassign(false);
                 setIsSaveLayout(true);
                 refreshSeats();
+                await refreshUsers();
             }
         } catch (error) {}
     };
@@ -310,6 +312,7 @@ export default function RoomDetails() {
     const handleRemoveUser = async (id: string) => {
         const res = await removeAssignUser(id);
         await refreshSeats();
+        await refreshUsers();
     };
 
     return (
@@ -564,6 +567,14 @@ export default function RoomDetails() {
                                     onChange={handleDateChange}
                                     showTimeSelect
                                     dateFormat="Pp"
+                                    className="border border-gray-300 rounded px-2 py-1"
+                                    minDate={new Date()}
+                                    minTime={new Date()}
+                                    maxTime={
+                                        new Date(
+                                            new Date().setHours(23, 59, 59)
+                                        )
+                                    }
                                 />
                             </div>
                         )}
